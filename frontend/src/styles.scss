@@ -1,0 +1,155 @@
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+:root {
+  --ssm-blue-900: #062352;
+  --ssm-blue-800: #092f6f;
+  --ssm-blue-700: #0b55b8;
+  --ssm-blue-600: #1264d3;
+  --ssm-red: #ed1c24;
+  --ssm-bg: #f4f7fb;
+  --ssm-bg-soft: #eef5ff;
+  --ssm-card: #ffffff;
+  --ssm-text: #09285f;
+  --ssm-muted: #66758f;
+  --ssm-border: #d9e3f2;
+  --ssm-shadow: 0 18px 45px rgba(7, 35, 83, .10);
+  --ssm-shadow-soft: 0 8px 22px rgba(7, 35, 83, .08);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background: var(--ssm-bg);
+  color: var(--ssm-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+a { color: inherit; text-decoration: none; }
+
+.full-width { width: 100%; }
+.mt-16 { margin-top: 16px; }
+.mb-16 { margin-bottom: 16px; }
+.text-center { text-align: center; }
+.spacer { flex: 1 1 auto; }
+
+.mat-mdc-card {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--ssm-shadow-soft) !important;
+  border: 1px solid rgba(217, 227, 242, .85);
+}
+
+.mat-mdc-card-header { padding-bottom: 14px; }
+.mat-mdc-card-title { color: var(--ssm-text); font-weight: 800 !important; }
+.mat-mdc-card-subtitle { color: var(--ssm-muted) !important; }
+
+.mat-mdc-form-field { width: 100%; }
+.mat-mdc-form-field-subscript-wrapper { line-height: 1.2; }
+.mat-mdc-form-field-hint { color: var(--ssm-muted); }
+.mat-mdc-text-field-wrapper { background: #fff; }
+.mat-mdc-select-panel { border-radius: 14px !important; }
+
+button.mat-mdc-flat-button,
+a.mat-mdc-flat-button {
+  min-height: 44px;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+}
+button.mat-mdc-stroked-button,
+a.mat-mdc-stroked-button {
+  min-height: 44px;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  background: #fff;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  background: #e7efff;
+  color: #0b55b8;
+  border: 1px solid rgba(11,85,184,.14);
+}
+.status-chip.resuelto { background: #e7f5eb; color: #14733b; border-color: rgba(20,115,59,.18); }
+.status-chip.pendiente { background: #fff2dc; color: #9b5b00; border-color: rgba(155,91,0,.18); }
+.status-chip.en_revision { background: #e8f0ff; color: #0a55b5; border-color: rgba(10,85,181,.18); }
+.status-chip.contactado { background: #eef4ff; color: #243b8f; border-color: rgba(36,59,143,.18); }
+.status-chip.no_corresponde { background: #f1f1f1; color: #555; border-color: rgba(85,85,85,.16); }
+
+.page-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 18px;
+}
+.page-title h2 { margin: 0; font-size: 26px; font-weight: 900; color: var(--ssm-text); }
+.page-title p { margin: 4px 0 0; color: var(--ssm-muted); }
+
+.empty-state {
+  text-align: center;
+  color: var(--ssm-muted);
+  padding: 34px 18px;
+}
+.empty-state mat-icon { font-size: 46px; width: 46px; height: 46px; color: #9aa8bd; }
+
+@media (max-width: 760px) {
+  .page-title { flex-direction: column; }
+}
+
+/* Tablas responsivas del backoffice: evitan que las acciones queden cortadas al 100% de zoom. */
+.mat-mdc-table { border-collapse: separate; border-spacing: 0; }
+.mat-mdc-paginator { min-width: max-content; }
+@media (max-width: 900px) {
+  .mat-mdc-table { font-size: 13px; }
+}
+
+/* Pulido visual producción v4.0 */
+.mat-mdc-card {
+  box-shadow: 0 10px 28px rgba(7, 35, 83, .075) !important;
+}
+.mat-mdc-card-title { letter-spacing: -.01em; }
+.mat-mdc-card-subtitle { line-height: 1.35; }
+.mat-mdc-header-row { height: 48px !important; }
+.mat-mdc-row { height: 54px !important; }
+th.mat-mdc-header-cell {
+  color: #5b6b86 !important;
+  font-size: 11px !important;
+  letter-spacing: .06em !important;
+}
+td.mat-mdc-cell {
+  font-size: 14px;
+  line-height: 1.3;
+}
+.mat-mdc-icon-button {
+  --mdc-icon-button-state-layer-size: 38px;
+  width: 38px !important;
+  height: 38px !important;
+  padding: 7px !important;
+}
+.mat-mdc-icon-button .mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+.page-title h2 {
+  font-size: 24px;
+  letter-spacing: -.02em;
+}
+.page-title p { font-size: 15px; }
+@media (max-width: 900px) {
+  .page-title h2 { font-size: 21px; }
+  .mat-mdc-row { height: 50px !important; }
+}

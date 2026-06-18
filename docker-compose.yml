@@ -1,0 +1,27 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: soporte_portales_salud_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: soporte_portales_salud
+      MYSQL_USER: soporte_salud
+      MYSQL_PASSWORD: soporte_salud_2026
+      MYSQL_ROOT_PASSWORD: root_soporte_salud_2026
+      TZ: America/Santiago
+    ports:
+      - "3306:3306"
+    volumes:
+      - soporte_portales_salud_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: soporte_portales_salud_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  soporte_portales_salud_data:

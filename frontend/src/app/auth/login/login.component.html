@@ -1,0 +1,36 @@
+<div class="login-shell">
+  <section class="login-hero">
+    <img class="login-logo" src="assets/img/logo-servicio-salud-magallanes.png" alt="Servicio de Salud Magallanes">
+    <span>Backoffice DSSM</span>
+    <h1>Soporte Portales Salud</h1>
+    <p>Acceso exclusivo para administradores y referentes autorizados.</p>
+  </section>
+
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>lock</mat-icon>
+      <mat-card-title>Acceso funcionarios</mat-card-title>
+      <mat-card-subtitle>Ingrese sus credenciales institucionales.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Correo institucional</mat-label>
+          <input matInput formControlName="email" type="email" autocomplete="username" placeholder="nombre@dssm.cl">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input matInput formControlName="password" [type]="hide ? 'password' : 'text'" autocomplete="current-password">
+          <button mat-icon-button matSuffix type="button" (click)="hide = !hide" aria-label="Mostrar u ocultar contraseña">
+            <mat-icon>{{ hide ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
+        </mat-form-field>
+        <div class="error" *ngIf="error()">{{ error() }}</div>
+        <button mat-flat-button color="primary" class="login-btn" [disabled]="loading()">
+          <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+          <span *ngIf="!loading()">Ingresar al backoffice</span>
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

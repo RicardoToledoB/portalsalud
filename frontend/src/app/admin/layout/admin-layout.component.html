@@ -1,0 +1,49 @@
+<mat-sidenav-container class="admin-container">
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="side-brand">
+      <img class="side-logo-img" src="assets/img/logo-servicio-salud-magallanes.png" alt="Servicio de Salud Magallanes">
+      <div>
+        <strong>Portales Salud</strong>
+        <span>Backoffice DSSM</span>
+      </div>
+    </div>
+
+    <mat-nav-list>
+      <a mat-list-item routerLink="/admin/dashboard" routerLinkActive="active">
+        <mat-icon>dashboard</mat-icon><span>Dashboard</span>
+      </a>
+      <a mat-list-item routerLink="/admin/solicitudes" routerLinkActive="active">
+        <mat-icon>assignment</mat-icon><span>Solicitudes</span>
+      </a>
+      <a mat-list-item routerLink="/admin/portales" routerLinkActive="active" *ngIf="user()?.role === 'ADMIN'">
+        <mat-icon>language</mat-icon><span>Portales</span>
+      </a>
+      <a mat-list-item routerLink="/admin/usuarios" routerLinkActive="active" *ngIf="user()?.role === 'ADMIN'">
+        <mat-icon>manage_accounts</mat-icon><span>Usuarios</span>
+      </a>
+    </mat-nav-list>
+
+    <div class="side-footer">
+      <mat-icon>shield</mat-icon>
+      <span>Acceso restringido a funcionarios autorizados.</span>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="topbar">
+      <div>
+        <span class="topbar-kicker">Gestión de requerimientos</span>
+        <strong>Soporte Portales Salud DSSM</strong>
+      </div>
+      <span class="spacer"></span>
+      <div class="user-pill">
+        <mat-icon>account_circle</mat-icon>
+        <span>{{ user()?.fullName }}</span>
+      </div>
+      <button mat-icon-button (click)="auth.logout()" aria-label="Salir">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+    <main class="content"><router-outlet /></main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

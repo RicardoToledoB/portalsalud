@@ -1,0 +1,78 @@
+<div class="page-title">
+  <div>
+    <h2>Solicitudes</h2>
+    <p>Bandeja de requerimientos ingresados por usuarios de portales de salud.</p>
+  </div>
+  <div class="export-actions">
+    <button mat-stroked-button color="primary" type="button" (click)="export()">
+      <mat-icon>download</mat-icon>
+      CSV
+    </button>
+    <button mat-flat-button color="primary" type="button" (click)="exportExcel()">
+      <mat-icon>table_view</mat-icon>
+      Excel
+    </button>
+  </div>
+</div>
+
+
+<mat-card class="portal-tabs-card">
+  <mat-tab-group class="portal-tabs" [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onPortalTabChange($event)">
+    <mat-tab [label]="allTabLabel()" *ngIf="showAllPortalsTab()"></mat-tab>
+    <mat-tab *ngFor="let portal of portals()" [label]="portal.name"></mat-tab>
+  </mat-tab-group>
+  <div class="portal-note">
+    <mat-icon>filter_alt</mat-icon>
+    <span>Vista actual: <strong>{{ currentPortalLabel() }}</strong></span>
+  </div>
+</mat-card>
+
+<mat-card class="filters">
+  <form [formGroup]="filters" class="filter-grid" (ngSubmit)="search()">
+    <mat-form-field appearance="outline"><mat-label>Folio</mat-label><input matInput formControlName="folio" placeholder="REQ-2026-000001"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>RUT</mat-label><input matInput formControlName="rut" placeholder="12.345.678-9"></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Portal</mat-label><mat-select formControlName="portalId" [disabled]="lockPortalFilter()"><mat-option value="">Todos</mat-option><mat-option *ngFor="let p of portals()" [value]="p.id">{{ p.name }}</mat-option></mat-select><mat-hint>También puede cambiar de portal usando las pestañas superiores.</mat-hint></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Estado</mat-label><mat-select formControlName="status"><mat-option value="">Todos</mat-option><mat-option *ngFor="let s of statuses" [value]="s">{{ labelStatus(s) }}</mat-option></mat-select></mat-form-field>
+    <mat-form-field appearance="outline"><mat-label>Tipo de dificultad</mat-label><mat-select formControlName="topicId"><mat-option value="">Todas</mat-option><mat-option *ngFor="let t of topics()" [value]="t.id">{{ t.name }}</mat-option></mat-select></mat-form-field>
+    <div class="filter-actions">
+      <button mat-flat-button color="primary" type="submit"><mat-icon>search</mat-icon>Buscar</button>
+      <button mat-stroked-button color="primary" type="button" (click)="resetFilters()"><mat-icon>restart_alt</mat-icon>Limpiar</button>
+    </div>
+  </form>
+</mat-card>
+
+<mat-card class="table-card">
+  <div class="table-header">
+    <div>
+      <strong>{{ total() }}</strong>
+      <span>solicitudes encontradas</span>
+    </div>
+  </div>
+  <table mat-table [dataSource]="rows()">
+    <ng-container matColumnDef="folio">
+      <th mat-header-cell *matHeaderCellDef>Folio</th>
+      <td mat-cell *matCellDef="let r"><strong class="folio">{{ r.folio }}</strong></td>
+    </ng-container>
+    <ng-container matColumnDef="portalName"><th mat-header-cell *matHeaderCellDef>Portal</th><td mat-cell *matCellDef="let r">{{ r.portalName }}</td></ng-container>
+    <ng-container matColumnDef="createdAt"><th mat-header-cell *matHeaderCellDef>Ingreso</th><td mat-cell *matCellDef="let r">{{ r.createdAt | date:'dd-MM-yyyy HH:mm' }}</td></ng-container>
+    <ng-container matColumnDef="fullName"><th mat-header-cell *matHeaderCellDef>Nombre</th><td mat-cell *matCellDef="let r">{{ r.fullName }}</td></ng-container>
+    <ng-container matColumnDef="rut"><th mat-header-cell *matHeaderCellDef>RUT</th><td mat-cell *matCellDef="let r">{{ r.rut }}</td></ng-container>
+    <ng-container matColumnDef="difficultyType"><th mat-header-cell *matHeaderCellDef>Dificultad</th><td mat-cell *matCellDef="let r"><span class="difficulty-pill">{{ topicLabel(r) }}</span></td></ng-container>
+    <ng-container matColumnDef="attachments"><th mat-header-cell *matHeaderCellDef>Adjuntos</th><td mat-cell *matCellDef="let r"><span class="attachment-count" *ngIf="r.attachmentCount; else noAttachments"><mat-icon>attach_file</mat-icon>{{ r.attachmentCount }}</span><ng-template #noAttachments><span class="muted">Sin adjuntos</span></ng-template></td></ng-container>
+    <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Estado</th><td mat-cell *matCellDef="let r"><span class="status-chip" [ngClass]="chipClass(r.status)">{{ labelStatus(r.status) }}</span></td></ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let r" class="actions-cell">
+        <button mat-icon-button color="primary" (click)="open(r)" matTooltip="Ver y gestionar solicitud"><mat-icon>visibility</mat-icon></button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+        <div class="empty-state"><mat-icon>inbox</mat-icon><p>No se encontraron solicitudes con los filtros aplicados.</p></div>
+      </td>
+    </tr>
+  </table>
+  <mat-paginator [length]="total()" [pageSize]="size" [pageSizeOptions]="[10, 20, 50]" (page)="pageChange($event)"></mat-paginator>
+</mat-card>

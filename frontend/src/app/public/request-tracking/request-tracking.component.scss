@@ -1,0 +1,112 @@
+.public-shell {
+  min-height: 100vh;
+  padding: 26px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(11, 85, 184, .15), transparent 30%),
+    radial-gradient(circle at 90% 10%, rgba(237, 28, 36, .10), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, #edf4ff 100%);
+}
+.public-header {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.logo-mark {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--ssm-blue-700), var(--ssm-red));
+  box-shadow: 0 14px 30px rgba(11, 85, 184, .22);
+}
+.eyebrow { display: block; color: var(--ssm-blue-700); font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+h1 { margin: 2px 0 0; font-size: clamp(24px, 3vw, 34px); line-height: 1.05; }
+.tracking-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 22px;
+}
+.help-panel {
+  padding: 28px;
+  border-radius: 30px;
+  color: #fff;
+  background: linear-gradient(145deg, var(--ssm-blue-900), var(--ssm-blue-700));
+  box-shadow: var(--ssm-shadow);
+}
+.help-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(255,255,255,.15);
+}
+.help-icon mat-icon { font-size: 32px; width: 32px; height: 32px; }
+.help-panel h2 { margin: 22px 0 10px; font-size: 28px; line-height: 1.12; }
+.help-panel p { margin: 0; color: rgba(255,255,255,.82); line-height: 1.5; }
+.mini-list { margin-top: 22px; display: grid; gap: 12px; }
+.mini-list div { display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.13); border-radius: 16px; padding: 12px; }
+.tracking-card, .result-card { padding: 10px; margin-bottom: 18px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.actions { grid-column: 1 / -1; display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.actions button, .actions a { min-width: 180px; }
+.error { color: #b00020; margin-top: 12px; font-weight: 700; }
+.result-header { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; padding: 18px 18px 0; }
+.result-header h2 { margin: 4px 0; color: var(--ssm-text); font-size: 28px; }
+.result-header p { margin: 0; color: var(--ssm-muted); }
+.timeline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+.timeline div {
+  padding: 14px;
+  border-radius: 16px;
+  background: #f5f8fc;
+  border: 1px solid var(--ssm-border);
+}
+.timeline mat-icon { color: #9aa8bd; }
+.timeline .done mat-icon { color: #188038; }
+.timeline span { display: block; margin: 8px 0 3px; color: var(--ssm-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.timeline strong { color: var(--ssm-text); }
+.public-response, .notice { border-radius: 18px; padding: 18px; }
+.public-response { background: #f7fbff; border: 1px solid #d9e9ff; }
+.response-title { display: flex; gap: 8px; align-items: center; color: var(--ssm-blue-700); }
+.response-title h3 { margin: 0; color: var(--ssm-text); }
+.public-response p { margin: 12px 0 0; line-height: 1.55; white-space: pre-wrap; }
+.notice { display: flex; gap: 12px; background: #eef5ff; border: 1px solid #cfe0f7; }
+.notice p { margin: 0; color: var(--ssm-text); line-height: 1.45; }
+@media (max-width: 900px) {
+  .tracking-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .public-shell { padding: 14px; }
+  .public-header { align-items: flex-start; flex-direction: column; }
+  .public-header a[mat-stroked-button] { width: 100%; justify-content: center; }
+  .grid, .timeline { grid-template-columns: 1fr; }
+  .actions { justify-content: stretch; }
+  .actions button, .actions a { width: 100%; }
+}
+
+/* Logo institucional en seguimiento */
+.brand {
+  text-decoration: none;
+  color: inherit;
+}
+.brand-logo-official {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: 0 10px 24px rgba(7, 35, 83, .12);
+  flex: 0 0 auto;
+}
+@media (max-width: 720px) {
+  .brand-logo-official { width: 62px; height: 62px; }
+}

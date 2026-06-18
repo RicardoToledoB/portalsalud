@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:5MB}
+      max-request-size: ${MAX_REQUEST_SIZE:25MB}
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:true}
+          starttls:
+            enable: ${SMTP_STARTTLS:true}
+
+app:
+  upload:
+    dir: ${UPLOAD_DIR:uploads/solicitudes}
+    max-files: ${UPLOAD_MAX_FILES:5}
+    max-file-size-bytes: ${UPLOAD_MAX_FILE_SIZE_BYTES:5242880}
+  portal:
+    public-base-url: ${PUBLIC_BASE_URL:https://portalesalud.dssm.cl}
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    from: ${MAIL_FROM:no-reply@saludmagallanes.cl}
+    reply-to: ${MAIL_REPLY_TO:}
+  security:
+    jwt-secret: ${JWT_SECRET}
+    jwt-expiration-minutes: 480
+  cors:
+    allowed-origins: "https://portalesalud.dssm.cl,https://soportesalud.dssm.cl"
+  bootstrap-admin:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    full-name: ${BOOTSTRAP_ADMIN_FULLNAME:Administrador Portales Salud}
+    email: ${BOOTSTRAP_ADMIN_EMAIL:admin@dssm.cl}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}

@@ -1,0 +1,12 @@
+package cl.dssm.soporteimagenes.enums;
+
+public enum LogAction {
+    CREACION_SOLICITUD,
+    CAMBIO_ESTADO,
+    OBSERVACION_INTERNA,
+    ASIGNACION,
+    ACTUALIZACION_SOLICITUD,
+    ENVIO_CORREO,
+    ERROR_ENVIO_CORREO,
+    ADJUNTO_SOLICITUD
+}

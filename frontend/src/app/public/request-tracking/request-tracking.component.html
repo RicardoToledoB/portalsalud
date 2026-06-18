@@ -1,0 +1,105 @@
+<div class="public-shell">
+  <header class="public-header">
+    <a class="brand" routerLink="/solicitud" aria-label="Volver a solicitud">
+      <img class="brand-logo-official" src="assets/img/logo-servicio-salud-magallanes.png" alt="Servicio de Salud Magallanes">
+      <div>
+        <span class="eyebrow">Servicio de Salud Magallanes</span>
+        <h1>Seguimiento de requerimiento</h1>
+      </div>
+    </a>
+    <a mat-stroked-button color="primary" routerLink="/solicitud">
+      <mat-icon>add_circle</mat-icon>
+      Nueva solicitud
+    </a>
+  </header>
+
+  <main class="tracking-grid">
+    <section class="help-panel">
+      <div class="help-icon"><mat-icon>verified_user</mat-icon></div>
+      <h2>Consulta segura con folio y RUT</h2>
+      <p>Para proteger los datos personales, el sistema solicita ambos antecedentes antes de mostrar el estado de la solicitud.</p>
+      <div class="mini-list">
+        <div><mat-icon>confirmation_number</mat-icon><span>Folio de requerimiento</span></div>
+        <div><mat-icon>badge</mat-icon><span>RUT del solicitante</span></div>
+        <div><mat-icon>mail</mat-icon><span>Respuesta visible y notificación por correo</span></div>
+      </div>
+    </section>
+
+    <section>
+      <mat-card class="tracking-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>manage_search</mat-icon>
+          <mat-card-title>Consultar solicitud</mat-card-title>
+          <mat-card-subtitle>Ingrese el folio entregado al registrar la solicitud.</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <form [formGroup]="form" (ngSubmit)="search()" class="grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Número de requerimiento</mat-label>
+              <input matInput formControlName="folio" placeholder="REQ-2026-000001">
+              <mat-error>Ingrese el folio</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>RUT</mat-label>
+              <input matInput formControlName="rut" placeholder="12.345.678-9">
+              <mat-error>Ingrese el RUT</mat-error>
+            </mat-form-field>
+
+            <div class="actions">
+              <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+                <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+                <span *ngIf="!loading()">Consultar estado</span>
+              </button>
+              <a mat-stroked-button color="primary" routerLink="/solicitud">Registrar nueva solicitud</a>
+            </div>
+          </form>
+          <div class="error" *ngIf="error()">{{ error() }}</div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="result-card" *ngIf="result() as item">
+        <div class="result-header">
+          <div>
+            <span class="eyebrow">Resultado de búsqueda</span>
+            <h2>{{ item.folio }}</h2>
+            <p>{{ item.portalName }}</p>
+          </div>
+          <span class="status-chip" [ngClass]="item.status.toLowerCase()">{{ item.status }}</span>
+        </div>
+
+        <mat-card-content>
+          <div class="timeline">
+            <div class="done">
+              <mat-icon>check_circle</mat-icon>
+              <span>Ingresada</span>
+              <strong>{{ item.createdAt | date:'dd-MM-yyyy HH:mm' }}</strong>
+            </div>
+            <div [class.done]="item.updatedAt">
+              <mat-icon>{{ item.updatedAt ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              <span>Última actualización</span>
+              <strong>{{ item.updatedAt ? (item.updatedAt | date:'dd-MM-yyyy HH:mm') : 'Sin actualización' }}</strong>
+            </div>
+            <div [class.done]="item.resolvedAt">
+              <mat-icon>{{ item.resolvedAt ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              <span>Cierre</span>
+              <strong>{{ item.resolvedAt ? (item.resolvedAt | date:'dd-MM-yyyy HH:mm') : 'No cerrada' }}</strong>
+            </div>
+          </div>
+
+          <div class="public-response" *ngIf="item.publicResponse; else noResponse">
+            <div class="response-title"><mat-icon>forum</mat-icon><h3>Respuesta del equipo responsable</h3></div>
+            <p>{{ item.publicResponse }}</p>
+          </div>
+          <ng-template #noResponse>
+            <div class="notice">
+              <mat-icon>info</mat-icon>
+              <p>La solicitud aún no registra una respuesta pública. Revise nuevamente más tarde o espere la notificación por correo electrónico, si informó un correo válido.</p>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </section>
+  </main>
+</div>

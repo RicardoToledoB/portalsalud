@@ -1,0 +1,77 @@
+<div class="page-title">
+  <div>
+    <h2>Dashboard</h2>
+    <p>Resumen operativo de requerimientos ingresados por usuarios, separado por portal.</p>
+  </div>
+  <a mat-flat-button color="primary" routerLink="/admin/solicitudes">
+    <mat-icon>assignment</mat-icon>
+    Ver solicitudes
+  </a>
+</div>
+
+<mat-card class="portal-tabs-card">
+  <mat-tab-group class="portal-tabs" (selectedIndexChange)="onPortalTabChange($event)">
+    <mat-tab [label]="allTabLabel()" *ngIf="showAllPortalsTab()"></mat-tab>
+    <mat-tab *ngFor="let portal of portals()" [label]="portal.name"></mat-tab>
+  </mat-tab-group>
+</mat-card>
+
+<div *ngIf="currentSummary() as s; else loadingTpl">
+  <div class="portal-context">
+    <mat-icon>folder_shared</mat-icon>
+    <div>
+      <strong>{{ currentPortalLabel() }}</strong>
+      <span>Los indicadores corresponden al portal seleccionado.</span>
+    </div>
+  </div>
+
+  <div class="cards">
+    <mat-card class="metric-card total"><mat-icon>assignment</mat-icon><span>Total solicitudes</span><strong>{{ s.total }}</strong></mat-card>
+    <mat-card class="metric-card pending"><mat-icon>hourglass_empty</mat-icon><span>Pendientes</span><strong>{{ s.pendientes }}</strong></mat-card>
+    <mat-card class="metric-card review"><mat-icon>manage_search</mat-icon><span>En revisión</span><strong>{{ s.enRevision }}</strong></mat-card>
+    <mat-card class="metric-card resolved"><mat-icon>check_circle</mat-icon><span>Resueltos</span><strong>{{ s.resueltos }}</strong></mat-card>
+    <mat-card class="metric-card"><mat-icon>date_range</mat-icon><span>Últimos 7 días</span><strong>{{ s.ultimos7Dias }}</strong></mat-card>
+    <mat-card class="metric-card"><mat-icon>calendar_month</mat-icon><span>Últimos 30 días</span><strong>{{ s.ultimos30Dias }}</strong></mat-card>
+  </div>
+
+  <div class="dashboard-grid mt-16">
+    <mat-card class="panel-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>analytics</mat-icon>
+        <mat-card-title>Solicitudes por temática</mat-card-title>
+        <mat-card-subtitle>Distribución del portal seleccionado</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="difficulty" *ngFor="let item of s.porTipoDificultad | keyvalue">
+          <div class="row-title">
+            <span>{{ labelDifficulty(item.key) }}</span>
+            <strong>{{ item.value }}</strong>
+          </div>
+          <mat-progress-bar mode="determinate" [value]="percent(item.value, s.total)"></mat-progress-bar>
+        </div>
+        <div class="empty-inline" *ngIf="!s.total">Sin solicitudes registradas para este portal.</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="panel-card health-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>fact_check</mat-icon>
+        <mat-card-title>Estado de gestión</mat-card-title>
+        <mat-card-subtitle>Vista rápida para priorizar</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="status-list">
+          <div><span class="status-chip pendiente">Pendientes</span><strong>{{ s.pendientes }}</strong></div>
+          <div><span class="status-chip en_revision">En revisión</span><strong>{{ s.enRevision }}</strong></div>
+          <div><span class="status-chip contactado">Contactados</span><strong>{{ s.contactados }}</strong></div>
+          <div><span class="status-chip resuelto">Resueltos</span><strong>{{ s.resueltos }}</strong></div>
+          <div><span class="status-chip no_corresponde">No corresponde</span><strong>{{ s.noCorresponde }}</strong></div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <mat-card class="empty-state"><mat-icon>hourglass_empty</mat-icon><p>Cargando resumen...</p></mat-card>
+</ng-template>

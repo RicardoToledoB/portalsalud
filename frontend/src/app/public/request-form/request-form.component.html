@@ -1,0 +1,227 @@
+<div class="public-shell">
+  <header class="public-header">
+    <a class="brand" routerLink="/solicitud" aria-label="Inicio">
+      <img class="brand-logo-official" src="assets/img/logo-servicio-salud-magallanes.png" alt="Servicio de Salud Magallanes">
+      <div>
+        <span class="eyebrow">Servicio de Salud Magallanes</span>
+        <h1>Soporte Portales Salud DSSM</h1>
+      </div>
+    </a>
+    <a mat-stroked-button color="primary" routerLink="/seguimiento">
+      <mat-icon>manage_search</mat-icon>
+      Consultar seguimiento
+    </a>
+  </header>
+
+  <section class="service-banner" aria-label="Acceso al sitio institucional del Servicio de Salud Magallanes">
+    <div class="service-banner-text">
+      <mat-icon>public</mat-icon>
+      <div>
+        <strong>Canal de soporte para portales de salud DSSM</strong>
+        <span>Para información institucional, noticias y otros servicios, visite el sitio oficial del Servicio de Salud Magallanes.</span>
+      </div>
+    </div>
+    <a mat-flat-button color="primary" href="https://www.saludmagallanes.cl/" target="_blank" rel="noopener noreferrer">
+      <mat-icon>open_in_new</mat-icon>
+      Ir a Salud Magallanes
+    </a>
+  </section>
+
+  <main class="public-grid" *ngIf="!folio(); else success">
+    <section class="hero-panel">
+      <div class="hero-badge">
+        <mat-icon>image_search</mat-icon>
+        Portales de salud DSSM
+      </div>
+      <h2>Registra tu dificultad de acceso a portales de salud y recibe seguimiento con folio.</h2>
+      <p>
+        Esta plataforma permite ordenar las solicitudes de usuarios y derivarlas al referente correspondiente,
+        según el portal o sistema seleccionado.
+      </p>
+
+      <div class="steps">
+        <div>
+          <span>1</span>
+          <strong>Completa tus datos</strong>
+          <small>Nombre, RUT, correo y teléfono.</small>
+        </div>
+        <div>
+          <span>2</span>
+          <strong>Recibe tu folio</strong>
+          <small>Ejemplo: REQ-2026-000001.</small>
+        </div>
+        <div>
+          <span>3</span>
+          <strong>Consulta el estado</strong>
+          <small>Ingresa folio y RUT en seguimiento.</small>
+        </div>
+      </div>
+
+      <div class="privacy-box">
+        <mat-icon>privacy_tip</mat-icon>
+        <p>No ingrese diagnósticos, exámenes, síntomas ni antecedentes clínicos. Este formulario es solo para problemas de acceso o actualización de datos.</p>
+      </div>
+    </section>
+
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>support_agent</mat-icon>
+        <mat-card-title>Solicitud de ayuda</mat-card-title>
+        <mat-card-subtitle>Complete los campos obligatorios marcados con asterisco.</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <mat-form-field appearance="outline">
+            <mat-label>Portal o sistema</mat-label>
+            <mat-select formControlName="portalId">
+              <mat-option *ngFor="let portal of portals()" [value]="portal.id">{{ portal.name }}</mat-option>
+            </mat-select>
+            <mat-hint>Los portales activos se administran desde el backoffice.</mat-hint>
+          </mat-form-field>
+
+          <div class="form-section-title">Datos del solicitante</div>
+          <div class="grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre completo</mat-label>
+              <input matInput formControlName="fullName" autocomplete="name">
+              <mat-error>Campo obligatorio</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>RUT</mat-label>
+              <input matInput formControlName="rut" placeholder="12.345.678-9">
+              <mat-error *ngIf="form.controls.rut.hasError('required')">Campo obligatorio</mat-error>
+              <mat-error *ngIf="form.controls.rut.hasError('rut')">Ingrese un RUT válido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Correo electrónico</mat-label>
+              <input matInput formControlName="email" type="email" autocomplete="email">
+              <mat-error *ngIf="form.controls.email.hasError('required')">Campo obligatorio</mat-error>
+              <mat-error *ngIf="form.controls.email.hasError('email')">Ingrese un correo válido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Celular</mat-label>
+              <input matInput formControlName="phone" autocomplete="tel" placeholder="Ej: 9 1234 5678">
+              <mat-hint>Formato chileno: 9 1234 5678 o +56 9 1234 5678</mat-hint>
+              <mat-error *ngIf="form.controls.phone.hasError('mobile')">Ingrese un celular válido</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Teléfono fijo opcional</mat-label>
+              <input matInput formControlName="fixedPhone" autocomplete="tel" placeholder="Ej: 61 2 123456">
+              <mat-error *ngIf="form.controls.fixedPhone.hasError('fixedPhone')">Ingrese un teléfono fijo válido</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-section-title">Motivo del requerimiento</div>
+          <mat-form-field appearance="outline">
+            <mat-label>Tipo de dificultad</mat-label>
+            <mat-select formControlName="topicId">
+              <mat-option *ngFor="let item of topics()" [value]="item.id">{{ item.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" *ngIf="requiresOtherDetail()">
+            <mat-label>Especifique la dificultad</mat-label>
+            <textarea matInput rows="3" formControlName="otherDetail"></textarea>
+            <mat-error>Debe especificar el motivo</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Observación adicional</mat-label>
+            <textarea matInput rows="4" formControlName="userObservation" placeholder="Ej: no puedo recuperar contraseña, cambié mi teléfono, no tengo correo registrado, etc."></textarea>
+          </mat-form-field>
+
+          <div class="attachment-box">
+            <div class="attachment-header">
+              <div>
+                <strong>Adjuntar imágenes opcionales</strong>
+                <p>Puede subir hasta 5 pantallazos JPG, PNG o WEBP, máximo 5 MB cada uno. No adjunte exámenes, informes ni antecedentes clínicos.</p>
+              </div>
+              <button mat-stroked-button color="primary" type="button" (click)="openFileSelector()">
+                <mat-icon>attach_file</mat-icon>
+                Seleccionar imágenes
+              </button>
+            </div>
+            <input #fileInput type="file" accept="image/jpeg,image/png,image/webp" multiple hidden (change)="onFilesSelected($event)">
+
+            <div class="attachment-list" *ngIf="selectedFiles().length">
+              <div class="attachment-item" *ngFor="let file of selectedFiles(); let i = index">
+                <mat-icon>image</mat-icon>
+                <div>
+                  <strong>{{ file.name }}</strong>
+                  <span>{{ fileSizeLabel(file.size) }}</span>
+                </div>
+                <button mat-icon-button color="warn" type="button" (click)="removeFile(i)" aria-label="Quitar adjunto">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="field-warning" *ngIf="attachmentError()">{{ attachmentError() }}</div>
+          </div>
+
+          <div class="notice">
+            <mat-icon>shield</mat-icon>
+            <p>La información será utilizada exclusivamente para gestionar dificultades de acceso a portales de salud DSSM y actualizar antecedentes de contacto, según corresponda.</p>
+          </div>
+
+          <div class="captcha-row">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ captchaQuestion() || 'Validación anti-spam' }}</mat-label>
+              <input matInput formControlName="captchaAnswer" inputmode="numeric" autocomplete="off">
+              <mat-error>Responda la validación anti-spam</mat-error>
+            </mat-form-field>
+            <button mat-stroked-button color="primary" type="button" (click)="loadCaptcha()">
+              <mat-icon>refresh</mat-icon>
+              Cambiar
+            </button>
+          </div>
+
+          <input type="text" formControlName="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+          <mat-checkbox formControlName="consentAccepted" class="consent">
+            Declaro que la información entregada es correcta y autorizo su uso para gestionar esta solicitud.
+          </mat-checkbox>
+          <div class="field-warning" *ngIf="form.hasError('contactPhoneRequired') && form.touched">
+            Debe ingresar al menos un teléfono de contacto: celular o teléfono fijo.
+          </div>
+
+          <div class="error" *ngIf="error()">{{ error() }}</div>
+
+          <div class="form-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+              <mat-spinner *ngIf="loading()" diameter="20"></mat-spinner>
+              <span *ngIf="!loading()">Enviar solicitud</span>
+              <mat-icon *ngIf="!loading()">arrow_forward</mat-icon>
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </main>
+
+  <ng-template #success>
+    <main class="success-wrap">
+      <mat-card class="success-card">
+        <div class="success-icon-wrap"><mat-icon>check_circle</mat-icon></div>
+        <span class="eyebrow">Solicitud registrada correctamente</span>
+        <h2>Su número de requerimiento es</h2>
+        <strong>{{ folio() }}</strong>
+        <p>Guarde este folio para futuras consultas. También podrá revisar el estado ingresando su folio y RUT.</p>
+        <div class="success-actions">
+          <a mat-flat-button color="primary" [routerLink]="['/seguimiento']" [queryParams]="{ folio: folio() }">
+            <mat-icon>manage_search</mat-icon>
+            Consultar seguimiento
+          </a>
+          <button mat-stroked-button color="primary" (click)="folio.set(null)">
+            <mat-icon>add_circle</mat-icon>
+            Ingresar otra solicitud
+          </button>
+        </div>
+      </mat-card>
+    </main>
+  </ng-template>
+</div>
