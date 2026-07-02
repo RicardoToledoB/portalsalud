@@ -10,5 +10,6 @@ public record UpsertPortalTopicDto(
         @Size(max = 500) String description,
         @NotNull Boolean active,
         Boolean requiresDetail,
+        Boolean requiresTutorContact,
         Integer displayOrder
 ) {}

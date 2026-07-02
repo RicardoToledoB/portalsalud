@@ -9,6 +9,7 @@ public record SupportPortalDto(
         String description,
         boolean active,
         Integer displayOrder,
+        boolean allowUserObservation,
         long topicCount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

@@ -36,6 +36,9 @@ public class PortalTopic {
     @Column(name = "requires_detail", nullable = false)
     private boolean requiresDetail;
 
+    @Column(name = "requires_tutor_contact", nullable = false)
+    private boolean requiresTutorContact;
+
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder;
 

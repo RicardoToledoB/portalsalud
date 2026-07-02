@@ -125,9 +125,12 @@ public class NotificationService {
     private String displayDifficulty(cl.dssm.soporteimagenes.enums.DifficultyType difficultyType) {
         if (difficultyType == null) return "Sin temática";
         return switch (difficultyType) {
-            case CONTRASENA_NO_FUNCIONA -> "Mi contraseña no funciona";
-            case DATOS_CONTACTO_NO_ACTUALIZADOS -> "Mis datos de contacto no están actualizados";
-            case SIN_CORREO_REGISTRADO -> "No he registrado un correo electrónico";
+            case CONTRASENA_NO_FUNCIONA -> "Portal no reconoce mi usuario y/o contraseña";
+            case DATOS_CONTACTO_NO_ACTUALIZADOS -> "Debo actualizar mis datos de contacto";
+            case SIN_CORREO_REGISTRADO -> "No he registrado un correo electrónico para asociar al Portal";
+            case NO_RECIBI_COMPARTIR_ESTUDIOS -> "No he recibido información para tareas como compartir mis estudios en mi correo";
+            case NO_RECIBI_RECUPERAR_CONTRASENA -> "No he recibido en mi correo la tarea para recuperar mi contraseña";
+            case TUTOR_RESPONSABLE_SIN_ACCESO -> "Soy tutor o responsable de una persona que no tiene accesos al Portal";
             case OTRO -> "Otro";
         };
     }

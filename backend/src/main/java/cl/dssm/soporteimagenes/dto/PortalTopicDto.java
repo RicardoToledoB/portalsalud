@@ -11,6 +11,7 @@ public record PortalTopicDto(
         String description,
         boolean active,
         boolean requiresDetail,
+        boolean requiresTutorContact,
         Integer displayOrder,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

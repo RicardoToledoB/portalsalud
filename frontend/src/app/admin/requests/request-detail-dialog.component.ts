@@ -44,6 +44,11 @@ import { PortalImageRequest, RequestAttachment, RequestLog, RequestStatus, UserD
         <div><strong>Dificultad:</strong> {{ data.topicName || labelDifficulty(data.difficultyType) }}</div>
         <div *ngIf="data.otherDetail"><strong>Detalle:</strong> {{ data.otherDetail }}</div>
         <div *ngIf="data.userObservation"><strong>Observación usuario:</strong> {{ data.userObservation }}</div>
+        <div *ngIf="data.tutorFullName"><strong>Tutor/responsable:</strong> {{ data.tutorFullName }}</div>
+        <div *ngIf="data.tutorRut"><strong>RUT tutor:</strong> {{ data.tutorRut }}</div>
+        <div *ngIf="data.tutorPhone"><strong>Teléfono tutor:</strong> {{ data.tutorPhone }}</div>
+        <div *ngIf="data.tutorEmail"><strong>Correo tutor:</strong> {{ data.tutorEmail }}</div>
+        <div *ngIf="data.tutorRelationship"><strong>Relación:</strong> {{ data.tutorRelationship }}</div>
       </div>
 
       <section class="attachments-box" *ngIf="data.attachments?.length">
@@ -256,9 +261,12 @@ export class RequestDetailDialogComponent implements OnInit {
 
   labelDifficulty(value: string): string {
     const labels: Record<string, string> = {
-      CONTRASENA_NO_FUNCIONA: 'Contraseña no funciona',
-      DATOS_CONTACTO_NO_ACTUALIZADOS: 'Datos no actualizados',
-      SIN_CORREO_REGISTRADO: 'Sin correo registrado',
+      CONTRASENA_NO_FUNCIONA: 'Portal no reconoce usuario/contraseña',
+      DATOS_CONTACTO_NO_ACTUALIZADOS: 'Actualizar datos de contacto',
+      SIN_CORREO_REGISTRADO: 'Sin correo asociado al Portal',
+      NO_RECIBI_COMPARTIR_ESTUDIOS: 'No recibió información para compartir estudios',
+      NO_RECIBI_RECUPERAR_CONTRASENA: 'No recibió tarea para recuperar contraseña',
+      TUTOR_RESPONSABLE_SIN_ACCESO: 'Tutor/responsable sin acceso',
       OTRO: 'Otro'
     };
     return labels[value] ?? value;

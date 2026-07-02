@@ -48,6 +48,7 @@ public class PortalAdminService {
                 .name(dto.name().trim())
                 .description(blankToNull(dto.description()))
                 .active(Boolean.TRUE.equals(dto.active()))
+                .allowUserObservation(dto.allowUserObservation() == null || Boolean.TRUE.equals(dto.allowUserObservation()))
                 .displayOrder(dto.displayOrder() == null ? 0 : dto.displayOrder())
                 .build();
         return toDto(portalRepository.save(portal));
@@ -66,6 +67,7 @@ public class PortalAdminService {
         portal.setName(dto.name().trim());
         portal.setDescription(blankToNull(dto.description()));
         portal.setActive(Boolean.TRUE.equals(dto.active()));
+        portal.setAllowUserObservation(dto.allowUserObservation() == null || Boolean.TRUE.equals(dto.allowUserObservation()));
         portal.setDisplayOrder(dto.displayOrder() == null ? 0 : dto.displayOrder());
         return toDto(portalRepository.save(portal));
     }
@@ -93,6 +95,7 @@ public class PortalAdminService {
                 .description(blankToNull(dto.description()))
                 .active(Boolean.TRUE.equals(dto.active()))
                 .requiresDetail(Boolean.TRUE.equals(dto.requiresDetail()))
+                .requiresTutorContact(Boolean.TRUE.equals(dto.requiresTutorContact()))
                 .displayOrder(dto.displayOrder() == null ? 0 : dto.displayOrder())
                 .build();
         return toDto(topicRepository.save(topic));
@@ -117,6 +120,7 @@ public class PortalAdminService {
         topic.setDescription(blankToNull(dto.description()));
         topic.setActive(Boolean.TRUE.equals(dto.active()));
         topic.setRequiresDetail(Boolean.TRUE.equals(dto.requiresDetail()));
+        topic.setRequiresTutorContact(Boolean.TRUE.equals(dto.requiresTutorContact()));
         topic.setDisplayOrder(dto.displayOrder() == null ? 0 : dto.displayOrder());
         return toDto(topicRepository.save(topic));
     }
@@ -135,6 +139,7 @@ public class PortalAdminService {
                 portal.getDescription(),
                 portal.isActive(),
                 portal.getDisplayOrder(),
+                portal.isAllowUserObservation(),
                 topicCount,
                 portal.getCreatedAt(),
                 portal.getUpdatedAt()
@@ -151,6 +156,7 @@ public class PortalAdminService {
                 topic.getDescription(),
                 topic.isActive(),
                 topic.isRequiresDetail(),
+                topic.isRequiresTutorContact(),
                 topic.getDisplayOrder(),
                 topic.getCreatedAt(),
                 topic.getUpdatedAt()

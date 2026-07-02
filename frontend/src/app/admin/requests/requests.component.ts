@@ -201,9 +201,12 @@ export class RequestsComponent implements OnInit {
 
   labelDifficulty(value: string): string {
     const labels: Record<string, string> = {
-      CONTRASENA_NO_FUNCIONA: 'Contraseña no funciona',
-      DATOS_CONTACTO_NO_ACTUALIZADOS: 'Datos no actualizados',
-      SIN_CORREO_REGISTRADO: 'Sin correo registrado',
+      CONTRASENA_NO_FUNCIONA: 'Portal no reconoce usuario/contraseña',
+      DATOS_CONTACTO_NO_ACTUALIZADOS: 'Actualizar datos de contacto',
+      SIN_CORREO_REGISTRADO: 'Sin correo asociado al Portal',
+      NO_RECIBI_COMPARTIR_ESTUDIOS: 'No recibió información para compartir estudios',
+      NO_RECIBI_RECUPERAR_CONTRASENA: 'No recibió tarea para recuperar contraseña',
+      TUTOR_RESPONSABLE_SIN_ACCESO: 'Tutor/responsable sin acceso',
       OTRO: 'Otro'
     };
     return labels[value] ?? value;

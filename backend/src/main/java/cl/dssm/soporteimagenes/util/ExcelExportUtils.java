@@ -21,9 +21,10 @@ public final class ExcelExportUtils {
 
             String[] headers = {
                     "Folio", "Portal", "Temática", "Fecha ingreso", "Estado", "Nombre", "RUT", "Correo", "Celular",
-                    "Teléfono fijo", "Tipo dificultad", "Detalle otro", "Observación usuario", "Observación interna",
-                    "Respuesta al solicitante", "Correo recepción enviado", "Correo respuesta enviado", "Error último correo",
-                    "Funcionario asignado", "Fecha resolución", "Cantidad adjuntos"
+                    "Teléfono fijo", "Tipo dificultad", "Detalle otro", "Observación usuario", "Tutor nombre", "Tutor RUT",
+                    "Tutor correo", "Tutor teléfono", "Relación tutor", "Observación interna", "Respuesta al solicitante",
+                    "Correo recepción enviado", "Correo respuesta enviado", "Error último correo", "Funcionario asignado",
+                    "Fecha resolución", "Cantidad adjuntos"
             };
             Row header = sheet.createRow(0);
             for (int i = 0; i < headers.length; i++) {
@@ -49,6 +50,11 @@ public final class ExcelExportUtils {
                 row.createCell(c++).setCellValue(value(r.difficultyType()));
                 row.createCell(c++).setCellValue(value(r.otherDetail()));
                 row.createCell(c++).setCellValue(value(r.userObservation()));
+                row.createCell(c++).setCellValue(value(r.tutorFullName()));
+                row.createCell(c++).setCellValue(value(r.tutorRut()));
+                row.createCell(c++).setCellValue(value(r.tutorEmail()));
+                row.createCell(c++).setCellValue(value(r.tutorPhone()));
+                row.createCell(c++).setCellValue(value(r.tutorRelationship()));
                 row.createCell(c++).setCellValue(value(r.internalObservation()));
                 row.createCell(c++).setCellValue(value(r.publicResponse()));
                 row.createCell(c++).setCellValue(value(r.acknowledgementSentAt()));

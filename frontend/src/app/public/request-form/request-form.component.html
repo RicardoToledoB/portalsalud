@@ -130,9 +130,51 @@
             <mat-error>Debe especificar el motivo</mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <section class="tutor-box" *ngIf="requiresTutorContact()">
+            <div class="tutor-title">
+              <mat-icon>supervisor_account</mat-icon>
+              <div>
+                <strong>Datos del tutor o responsable</strong>
+                <p>Complete estos datos para poder contactar a quien realiza la gestión por la persona usuaria del Portal.</p>
+              </div>
+            </div>
+            <div class="grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Nombre completo del tutor/responsable</mat-label>
+                <input matInput formControlName="tutorFullName" autocomplete="name">
+                <mat-error>Campo obligatorio</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>RUT del tutor/responsable</mat-label>
+                <input matInput formControlName="tutorRut" placeholder="12.345.678-9">
+                <mat-error *ngIf="form.controls.tutorRut.hasError('required')">Campo obligatorio</mat-error>
+                <mat-error *ngIf="form.controls.tutorRut.hasError('rut')">Ingrese un RUT válido</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Teléfono del tutor/responsable</mat-label>
+                <input matInput formControlName="tutorPhone" autocomplete="tel" placeholder="Ej: 9 1234 5678">
+                <mat-error *ngIf="form.controls.tutorPhone.hasError('required')">Campo obligatorio</mat-error>
+                <mat-error *ngIf="form.controls.tutorPhone.hasError('phone')">Ingrese un teléfono válido</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Correo del tutor/responsable opcional</mat-label>
+                <input matInput formControlName="tutorEmail" type="email" autocomplete="email">
+                <mat-error>Ingrese un correo válido</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Relación con la persona usuaria</mat-label>
+                <input matInput formControlName="tutorRelationship" placeholder="Ej: madre, padre, tutor legal, cuidador, etc.">
+              </mat-form-field>
+            </div>
+          </section>
+
+          <mat-form-field appearance="outline" *ngIf="allowUserObservation()">
             <mat-label>Observación adicional</mat-label>
-            <textarea matInput rows="4" formControlName="userObservation" placeholder="Ej: no puedo recuperar contraseña, cambié mi teléfono, no tengo correo registrado, etc."></textarea>
+            <textarea matInput rows="4" formControlName="userObservation" placeholder="Ingrese información complementaria si corresponde. No incluya antecedentes clínicos."></textarea>
           </mat-form-field>
 
           <div class="attachment-box">

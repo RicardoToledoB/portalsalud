@@ -300,3 +300,19 @@ h1 { margin: 2px 0 0; font-size: clamp(24px, 3vw, 34px); color: var(--ssm-text);
     justify-content: center;
   }
 }
+.tutor-box {
+  border: 1px solid #d7e4f4;
+  background: #f4f8ff;
+  border-radius: 18px;
+  padding: 14px;
+  margin: 4px 0 14px;
+}
+.tutor-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.tutor-title mat-icon { color: var(--ssm-blue-700); }
+.tutor-title strong { color: var(--ssm-text); }
+.tutor-title p { margin: 3px 0 0; color: var(--ssm-muted); font-size: 13px; line-height: 1.35; }

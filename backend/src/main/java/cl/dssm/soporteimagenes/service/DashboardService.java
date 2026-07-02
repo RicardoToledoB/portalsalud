@@ -134,9 +134,12 @@ public class DashboardService {
             return "Sin temática";
         }
         return switch (request.getDifficultyType()) {
-            case CONTRASENA_NO_FUNCIONA -> "Mi contraseña no funciona";
-            case DATOS_CONTACTO_NO_ACTUALIZADOS -> "Mis datos de contacto no están actualizados";
-            case SIN_CORREO_REGISTRADO -> "No he registrado un correo electrónico";
+            case CONTRASENA_NO_FUNCIONA -> "Portal no reconoce mi usuario y/o contraseña";
+            case DATOS_CONTACTO_NO_ACTUALIZADOS -> "Debo actualizar mis datos de contacto";
+            case SIN_CORREO_REGISTRADO -> "No he registrado un correo electrónico para asociar al Portal";
+            case NO_RECIBI_COMPARTIR_ESTUDIOS -> "No he recibido información para tareas como compartir mis estudios";
+            case NO_RECIBI_RECUPERAR_CONTRASENA -> "No he recibido tarea para recuperar contraseña";
+            case TUTOR_RESPONSABLE_SIN_ACCESO -> "Tutor o responsable sin acceso";
             case OTRO -> "Otro";
         };
     }

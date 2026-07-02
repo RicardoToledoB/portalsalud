@@ -29,14 +29,15 @@ export class PortalsComponent implements OnInit {
   error = signal<string | null>(null);
   success = signal<string | null>(null);
 
-  portalColumns = ['name', 'code', 'active', 'order', 'actions'];
-  topicColumns = ['name', 'code', 'requiresDetail', 'active', 'order', 'actions'];
+  portalColumns = ['name', 'code', 'observation', 'active', 'order', 'actions'];
+  topicColumns = ['name', 'code', 'requiresDetail', 'requiresTutorContact', 'active', 'order', 'actions'];
 
   portalForm = this.fb.group({
     code: ['', [Validators.required, Validators.maxLength(80)]],
     name: ['', [Validators.required, Validators.maxLength(150)]],
     description: ['', Validators.maxLength(500)],
     active: [true],
+    allowUserObservation: [true],
     displayOrder: [0]
   });
 
@@ -46,6 +47,7 @@ export class PortalsComponent implements OnInit {
     description: ['', Validators.maxLength(500)],
     active: [true],
     requiresDetail: [false],
+    requiresTutorContact: [false],
     displayOrder: [0]
   });
 
@@ -93,13 +95,14 @@ export class PortalsComponent implements OnInit {
       name: portal.name,
       description: portal.description ?? '',
       active: portal.active,
+      allowUserObservation: portal.allowUserObservation !== false,
       displayOrder: portal.displayOrder ?? 0
     });
   }
 
   cancelPortalEdit(): void {
     this.editingPortalId.set(null);
-    this.portalForm.reset({ code: '', name: '', description: '', active: true, displayOrder: 0 });
+    this.portalForm.reset({ code: '', name: '', description: '', active: true, allowUserObservation: true, displayOrder: 0 });
   }
 
   savePortal(): void {
@@ -111,6 +114,7 @@ export class PortalsComponent implements OnInit {
       name: raw.name ?? '',
       description: raw.description ?? '',
       active: !!raw.active,
+      allowUserObservation: raw.allowUserObservation !== false,
       displayOrder: Number(raw.displayOrder ?? 0)
     };
     const id = this.editingPortalId();
@@ -135,13 +139,14 @@ export class PortalsComponent implements OnInit {
       description: topic.description ?? '',
       active: topic.active,
       requiresDetail: topic.requiresDetail,
+      requiresTutorContact: topic.requiresTutorContact,
       displayOrder: topic.displayOrder ?? 0
     });
   }
 
   cancelTopicEdit(): void {
     this.editingTopicId.set(null);
-    this.topicForm.reset({ code: '', name: '', description: '', active: true, requiresDetail: false, displayOrder: 0 });
+    this.topicForm.reset({ code: '', name: '', description: '', active: true, requiresDetail: false, requiresTutorContact: false, displayOrder: 0 });
   }
 
   saveTopic(): void {
@@ -156,6 +161,7 @@ export class PortalsComponent implements OnInit {
       description: raw.description ?? '',
       active: !!raw.active,
       requiresDetail: !!raw.requiresDetail,
+      requiresTutorContact: !!raw.requiresTutorContact,
       displayOrder: Number(raw.displayOrder ?? 0)
     };
     const id = this.editingTopicId();

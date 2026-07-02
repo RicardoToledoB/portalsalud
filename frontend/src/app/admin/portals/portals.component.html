@@ -22,6 +22,7 @@
         <mat-form-field appearance="outline"><mat-label>Nombre</mat-label><input matInput formControlName="name" placeholder="Portal de Imágenes"><mat-error>Campo obligatorio</mat-error></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Descripción</mat-label><textarea matInput formControlName="description" rows="3"></textarea></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Orden</mat-label><input matInput type="number" formControlName="displayOrder"></mat-form-field>
+        <mat-checkbox formControlName="allowUserObservation">Permitir caja de observación abierta al usuario</mat-checkbox>
         <mat-checkbox formControlName="active">Portal activo</mat-checkbox>
         <div class="actions compact-icon-actions">
           <button mat-mini-fab color="primary" type="submit" [disabled]="portalForm.invalid"
@@ -49,6 +50,7 @@
       <table mat-table [dataSource]="portals()">
         <ng-container matColumnDef="name"><th mat-header-cell *matHeaderCellDef>Portal</th><td mat-cell *matCellDef="let p"><button mat-button color="primary" (click)="selectPortal(p)"><strong>{{ p.name }}</strong></button><br><small>{{ p.description }}</small></td></ng-container>
         <ng-container matColumnDef="code"><th mat-header-cell *matHeaderCellDef>Código</th><td mat-cell *matCellDef="let p"><code>{{ p.code }}</code></td></ng-container>
+        <ng-container matColumnDef="observation"><th mat-header-cell *matHeaderCellDef>Obs. abierta</th><td mat-cell *matCellDef="let p"><span class="pill" [class.off]="!p.allowUserObservation">{{ p.allowUserObservation ? 'Sí' : 'No' }}</span></td></ng-container>
         <ng-container matColumnDef="active"><th mat-header-cell *matHeaderCellDef>Activo</th><td mat-cell *matCellDef="let p"><span class="pill" [class.off]="!p.active">{{ p.active ? 'Activo' : 'Inactivo' }}</span></td></ng-container>
         <ng-container matColumnDef="order"><th mat-header-cell *matHeaderCellDef>Orden</th><td mat-cell *matCellDef="let p">{{ p.displayOrder }}</td></ng-container>
         <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef>Acciones</th><td mat-cell *matCellDef="let p" class="row-actions"><button mat-icon-button color="primary" (click)="editPortal(p)" matTooltip="Editar portal" aria-label="Editar portal"><mat-icon>edit</mat-icon></button></td></ng-container>
@@ -84,6 +86,7 @@
       <mat-form-field appearance="outline"><mat-label>Descripción</mat-label><input matInput formControlName="description"></mat-form-field>
       <mat-form-field appearance="outline"><mat-label>Orden</mat-label><input matInput type="number" formControlName="displayOrder"></mat-form-field>
       <mat-checkbox formControlName="requiresDetail">Exigir detalle adicional</mat-checkbox>
+      <mat-checkbox formControlName="requiresTutorContact">Requiere datos de tutor/responsable</mat-checkbox>
       <mat-checkbox formControlName="active">Temática activa</mat-checkbox>
       <div class="actions compact-icon-actions">
         <button mat-mini-fab color="primary" type="submit" [disabled]="topicForm.invalid"
@@ -106,7 +109,8 @@
     <table mat-table [dataSource]="topics()" class="topics-table" *ngIf="topics().length">
       <ng-container matColumnDef="name"><th mat-header-cell *matHeaderCellDef>Temática</th><td mat-cell *matCellDef="let t"><strong>{{ t.name }}</strong><br><small>{{ t.description }}</small></td></ng-container>
       <ng-container matColumnDef="code"><th mat-header-cell *matHeaderCellDef>Código</th><td mat-cell *matCellDef="let t"><code>{{ t.code }}</code></td></ng-container>
-      <ng-container matColumnDef="requiresDetail"><th mat-header-cell *matHeaderCellDef>Detalle</th><td mat-cell *matCellDef="let t">{{ t.requiresDetail ? 'Obligatorio' : 'Opcional' }}</td></ng-container>
+      <ng-container matColumnDef="requiresDetail"><th mat-header-cell *matHeaderCellDef>Detalle</th><td mat-cell *matCellDef="let t">{{ t.requiresDetail ? 'Obligatorio' : 'No' }}</td></ng-container>
+      <ng-container matColumnDef="requiresTutorContact"><th mat-header-cell *matHeaderCellDef>Tutor</th><td mat-cell *matCellDef="let t">{{ t.requiresTutorContact ? 'Solicita datos' : 'No' }}</td></ng-container>
       <ng-container matColumnDef="active"><th mat-header-cell *matHeaderCellDef>Activo</th><td mat-cell *matCellDef="let t"><span class="pill" [class.off]="!t.active">{{ t.active ? 'Activo' : 'Inactivo' }}</span></td></ng-container>
       <ng-container matColumnDef="order"><th mat-header-cell *matHeaderCellDef>Orden</th><td mat-cell *matCellDef="let t">{{ t.displayOrder }}</td></ng-container>
       <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef>Acciones</th><td mat-cell *matCellDef="let t" class="row-actions"><button mat-icon-button color="primary" (click)="editTopic(t)" matTooltip="Editar temática" aria-label="Editar temática"><mat-icon>edit</mat-icon></button></td></ng-container>

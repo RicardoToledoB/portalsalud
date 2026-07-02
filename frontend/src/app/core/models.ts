@@ -1,6 +1,6 @@
 export type UserRole = 'ADMIN' | 'REFERENTE_DSSM';
 export type RequestStatus = 'PENDIENTE' | 'EN_REVISION' | 'CONTACTADO' | 'RESUELTO' | 'NO_CORRESPONDE';
-export type DifficultyType = 'CONTRASENA_NO_FUNCIONA' | 'DATOS_CONTACTO_NO_ACTUALIZADOS' | 'SIN_CORREO_REGISTRADO' | 'OTRO';
+export type DifficultyType = 'CONTRASENA_NO_FUNCIONA' | 'DATOS_CONTACTO_NO_ACTUALIZADOS' | 'SIN_CORREO_REGISTRADO' | 'NO_RECIBI_COMPARTIR_ESTUDIOS' | 'NO_RECIBI_RECUPERAR_CONTRASENA' | 'TUTOR_RESPONSABLE_SIN_ACCESO' | 'OTRO';
 export type PortalType = 'PORTAL_IMAGENES';
 
 export interface UserPortalAssignment {
@@ -31,6 +31,7 @@ export interface SupportPortal {
   description?: string;
   active: boolean;
   displayOrder: number;
+  allowUserObservation: boolean;
   topicCount: number;
   createdAt: string;
   updatedAt?: string;
@@ -45,6 +46,7 @@ export interface PortalTopic {
   description?: string;
   active: boolean;
   requiresDetail: boolean;
+  requiresTutorContact: boolean;
   displayOrder: number;
   createdAt: string;
   updatedAt?: string;
@@ -77,6 +79,11 @@ export interface PortalImageRequest {
   topicName?: string;
   otherDetail?: string;
   userObservation?: string;
+  tutorFullName?: string;
+  tutorRut?: string;
+  tutorEmail?: string;
+  tutorPhone?: string;
+  tutorRelationship?: string;
   consentAccepted: boolean;
   source: string;
   status: RequestStatus;

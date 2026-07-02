@@ -34,6 +34,9 @@ public class SupportPortal {
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder;
 
+    @Column(name = "allow_user_observation", nullable = false)
+    private boolean allowUserObservation;
+
     @Builder.Default
     @OneToMany(mappedBy = "portal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PortalTopic> topics = new ArrayList<>();

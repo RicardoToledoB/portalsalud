@@ -9,5 +9,6 @@ public record UpsertSupportPortalDto(
         @NotBlank @Size(max = 150) String name,
         @Size(max = 500) String description,
         @NotNull Boolean active,
+        Boolean allowUserObservation,
         Integer displayOrder
 ) {}

@@ -76,7 +76,7 @@ public class PortalImageRequestService {
         DifficultyType difficultyType = legacyDifficultyType(portalTopic, dto.difficultyType());
         PortalType portalType = legacyPortalType(supportPortal, dto.portalType());
 
-        validatePublicRequest(dto, difficultyType, portalTopic);
+        validatePublicRequest(dto, difficultyType, portalTopic, supportPortal);
         String formattedRut = RutUtils.format(dto.rut());
 
         User assignedReferent = findReferent(supportPortal, portalType, portalTopic, difficultyType);
@@ -93,7 +93,12 @@ public class PortalImageRequestService {
                 .difficultyType(difficultyType)
                 .portalTopic(portalTopic)
                 .otherDetail(blankToNull(dto.otherDetail()))
-                .userObservation(blankToNull(dto.userObservation()))
+                .userObservation(supportPortal.isAllowUserObservation() ? blankToNull(dto.userObservation()) : null)
+                .tutorFullName(portalTopic != null && portalTopic.isRequiresTutorContact() ? blankToNull(dto.tutorFullName()) : null)
+                .tutorRut(portalTopic != null && portalTopic.isRequiresTutorContact() ? RutUtils.format(dto.tutorRut()) : null)
+                .tutorEmail(portalTopic != null && portalTopic.isRequiresTutorContact() ? blankToNull(dto.tutorEmail()) : null)
+                .tutorPhone(portalTopic != null && portalTopic.isRequiresTutorContact() ? normalizeTutorPhone(dto.tutorPhone()) : null)
+                .tutorRelationship(portalTopic != null && portalTopic.isRequiresTutorContact() ? blankToNull(dto.tutorRelationship()) : null)
                 .consentAccepted(dto.consentAccepted())
                 .source("QR_FORM")
                 .status(RequestStatus.PENDIENTE)
@@ -286,6 +291,11 @@ public class PortalImageRequestService {
                     .append(CsvUtils.escape(String.valueOf(r.difficultyType()))).append(';')
                     .append(CsvUtils.escape(r.otherDetail())).append(';')
                     .append(CsvUtils.escape(r.userObservation())).append(';')
+                    .append(CsvUtils.escape(r.tutorFullName())).append(';')
+                    .append(CsvUtils.escape(r.tutorRut())).append(';')
+                    .append(CsvUtils.escape(r.tutorEmail())).append(';')
+                    .append(CsvUtils.escape(r.tutorPhone())).append(';')
+                    .append(CsvUtils.escape(r.tutorRelationship())).append(';')
                     .append(CsvUtils.escape(r.internalObservation())).append(';')
                     .append(CsvUtils.escape(r.publicResponse())).append(';')
                     .append(CsvUtils.escape(String.valueOf(r.acknowledgementSentAt()))).append(';')
@@ -508,7 +518,7 @@ public class PortalImageRequestService {
         return List.of();
     }
 
-    private void validatePublicRequest(CreatePortalImageRequestDto dto, DifficultyType difficultyType, PortalTopic topic) {
+    private void validatePublicRequest(CreatePortalImageRequestDto dto, DifficultyType difficultyType, PortalTopic topic, SupportPortal supportPortal) {
         if (dto.website() != null && !dto.website().isBlank()) {
             throw new ResponseStatusException(BAD_REQUEST, "Solicitud rechazada por control anti-spam");
         }
@@ -535,10 +545,18 @@ public class PortalImageRequestService {
         if ((requiresDetail || legacyOtherWithoutTopic) && (dto.otherDetail() == null || dto.otherDetail().isBlank())) {
             throw new ResponseStatusException(BAD_REQUEST, "Debe especificar el detalle de la dificultad seleccionada");
         }
+        if (supportPortal != null && !supportPortal.isAllowUserObservation() && dto.userObservation() != null && !dto.userObservation().isBlank()) {
+            throw new ResponseStatusException(BAD_REQUEST, "El portal seleccionado no permite observación abierta en el formulario público");
+        }
+        if (topic != null && topic.isRequiresTutorContact()) {
+            validateTutorContact(dto);
+        }
         if (difficultyType == DifficultyType.SIN_CORREO_REGISTRADO && (dto.phone() == null || dto.phone().isBlank()) && (dto.fixedPhone() == null || dto.fixedPhone().isBlank())) {
             throw new ResponseStatusException(BAD_REQUEST, "Debe ingresar teléfono de contacto si no cuenta con correo registrado");
         }
-        if (difficultyType != DifficultyType.SIN_CORREO_REGISTRADO && (dto.email() == null || dto.email().isBlank())) {
+        boolean requesterEmailOptional = difficultyType == DifficultyType.SIN_CORREO_REGISTRADO
+                || difficultyType == DifficultyType.TUTOR_RESPONSABLE_SIN_ACCESO;
+        if (!requesterEmailOptional && (dto.email() == null || dto.email().isBlank())) {
             throw new ResponseStatusException(BAD_REQUEST, "Debe ingresar correo electrónico");
         }
     }
@@ -594,6 +612,31 @@ public class PortalImageRequestService {
             }
         }
         return fallback == null ? DifficultyType.OTRO : fallback;
+    }
+
+    private void validateTutorContact(CreatePortalImageRequestDto dto) {
+        if (dto.tutorFullName() == null || dto.tutorFullName().isBlank()) {
+            throw new ResponseStatusException(BAD_REQUEST, "Debe ingresar el nombre del tutor o responsable");
+        }
+        if (dto.tutorRut() == null || dto.tutorRut().isBlank() || !RutUtils.isValid(dto.tutorRut())) {
+            throw new ResponseStatusException(BAD_REQUEST, "Debe ingresar un RUT válido del tutor o responsable");
+        }
+        if (dto.tutorPhone() == null || dto.tutorPhone().isBlank() || (!PhoneUtils.isValidMobile(dto.tutorPhone()) && !PhoneUtils.isValidFixedPhone(dto.tutorPhone()))) {
+            throw new ResponseStatusException(BAD_REQUEST, "Debe ingresar un teléfono válido del tutor o responsable");
+        }
+        if (dto.tutorEmail() != null && !dto.tutorEmail().isBlank() && !dto.tutorEmail().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new ResponseStatusException(BAD_REQUEST, "Correo electrónico del tutor inválido");
+        }
+    }
+
+    private String normalizeTutorPhone(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        if (PhoneUtils.isValidMobile(value)) {
+            return PhoneUtils.normalizeMobile(value);
+        }
+        return PhoneUtils.normalizeFixedPhone(value);
     }
 
     private void validatePublicResponse(String publicResponse) {

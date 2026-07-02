@@ -46,16 +46,37 @@ export class RequestFormComponent implements OnInit {
     difficultyType: ['CONTRASENA_NO_FUNCIONA', Validators.required],
     otherDetail: ['', Validators.maxLength(500)],
     userObservation: ['', Validators.maxLength(1000)],
+    tutorFullName: ['', Validators.maxLength(150)],
+    tutorRut: ['', [Validators.maxLength(20), rutValidator()]],
+    tutorEmail: ['', [Validators.email, Validators.maxLength(150)]],
+    tutorPhone: ['', [Validators.maxLength(50)]],
+    tutorRelationship: ['', Validators.maxLength(100)],
     consentAccepted: [false, Validators.requiredTrue],
     captchaId: ['', Validators.required],
     captchaAnswer: ['', [Validators.required, Validators.maxLength(10)]],
     website: ['']
   }, { validators: [atLeastOnePhoneValidator()] });
 
-  selectedDifficulty = computed(() => this.form.controls.difficultyType.value);
-
   portals = signal<SupportPortal[]>([]);
   topics = signal<PortalTopic[]>([]);
+
+  selectedDifficulty = computed(() => this.form.controls.difficultyType.value);
+
+  selectedPortal(): SupportPortal | null {
+    return this.portals().find(p => p.id === this.form.controls.portalId.value) ?? null;
+  }
+
+  allowUserObservation(): boolean {
+    return this.selectedPortal()?.allowUserObservation !== false;
+  }
+
+  requiresTutorContact(): boolean {
+    const topic = this.currentTopic();
+    const difficulty = this.form.controls.difficultyType.value;
+    return !!topic?.requiresTutorContact
+      || topic?.code === 'TUTOR_RESPONSABLE_SIN_ACCESO'
+      || difficulty === 'TUTOR_RESPONSABLE_SIN_ACCESO';
+  }
 
   constructor(private fb: FormBuilder, private api: ApiService) {
     this.form.controls.difficultyType.valueChanges.subscribe(value => this.applyConditionalValidators(value));
@@ -174,7 +195,16 @@ export class RequestFormComponent implements OnInit {
     }
     this.loading.set(true);
     const raw = this.form.getRawValue();
-    const payload = { ...raw, portalType: 'PORTAL_IMAGENES' };
+    const payload = {
+      ...raw,
+      portalType: 'PORTAL_IMAGENES',
+      userObservation: this.allowUserObservation() ? raw.userObservation : '',
+      tutorFullName: this.requiresTutorContact() ? raw.tutorFullName : '',
+      tutorRut: this.requiresTutorContact() ? raw.tutorRut : '',
+      tutorEmail: this.requiresTutorContact() ? raw.tutorEmail : '',
+      tutorPhone: this.requiresTutorContact() ? raw.tutorPhone : '',
+      tutorRelationship: this.requiresTutorContact() ? raw.tutorRelationship : ''
+    };
     this.api.createPublicRequest(payload, this.selectedFiles()).subscribe({
       next: result => {
         this.folio.set(result.folio);
@@ -183,7 +213,9 @@ export class RequestFormComponent implements OnInit {
           topicId: this.topics()[0]?.id ?? 0,
           difficultyType: this.topics()[0] ? this.legacyDifficulty(this.topics()[0].code) : 'CONTRASENA_NO_FUNCIONA',
           consentAccepted: false,
-          fullName: '', rut: '', email: '', phone: '', fixedPhone: '', otherDetail: '', userObservation: '', captchaId: '', captchaAnswer: '', website: ''
+          fullName: '', rut: '', email: '', phone: '', fixedPhone: '', otherDetail: '', userObservation: '',
+          tutorFullName: '', tutorRut: '', tutorEmail: '', tutorPhone: '', tutorRelationship: '',
+          captchaId: '', captchaAnswer: '', website: ''
         });
         this.clearFiles();
         this.loadCaptcha();
@@ -212,24 +244,54 @@ export class RequestFormComponent implements OnInit {
   private applyConditionalValidators(value: string, forceDetail = false): void {
     const email = this.form.controls.email;
     const other = this.form.controls.otherDetail;
+    const tutorFullName = this.form.controls.tutorFullName;
+    const tutorRut = this.form.controls.tutorRut;
+    const tutorPhone = this.form.controls.tutorPhone;
+    const tutorEmail = this.form.controls.tutorEmail;
+
     email.clearValidators();
     other.clearValidators();
+    tutorFullName.clearValidators();
+    tutorRut.clearValidators();
+    tutorPhone.clearValidators();
+    tutorEmail.clearValidators();
+
     email.addValidators([Validators.email, Validators.maxLength(150)]);
     other.addValidators([Validators.maxLength(500)]);
-    if (value !== 'SIN_CORREO_REGISTRADO') email.addValidators([Validators.required]);
+    tutorFullName.addValidators([Validators.maxLength(150)]);
+    tutorRut.addValidators([Validators.maxLength(20), rutValidator()]);
+    tutorPhone.addValidators([Validators.maxLength(50), anyPhoneValidator()]);
+    tutorEmail.addValidators([Validators.email, Validators.maxLength(150)]);
+
+    const requesterEmailOptional = value === 'SIN_CORREO_REGISTRADO' || value === 'TUTOR_RESPONSABLE_SIN_ACCESO';
+    if (!requesterEmailOptional) email.addValidators([Validators.required]);
     if (forceDetail) other.addValidators([Validators.required]);
+    if (this.requiresTutorContact()) {
+      tutorFullName.addValidators([Validators.required]);
+      tutorRut.addValidators([Validators.required]);
+      tutorPhone.addValidators([Validators.required]);
+    }
+
     email.updateValueAndValidity({ emitEvent: false });
     other.updateValueAndValidity({ emitEvent: false });
+    tutorFullName.updateValueAndValidity({ emitEvent: false });
+    tutorRut.updateValueAndValidity({ emitEvent: false });
+    tutorPhone.updateValueAndValidity({ emitEvent: false });
+    tutorEmail.updateValueAndValidity({ emitEvent: false });
     this.form.updateValueAndValidity({ emitEvent: false });
   }
 
+  currentTopic(): PortalTopic | undefined {
+    return this.topics().find(t => t.id === this.form.controls.topicId.value);
+  }
+
   requiresOtherDetail(): boolean {
-    const topic = this.topics().find(t => t.id === this.form.controls.topicId.value);
+    const topic = this.currentTopic();
     return !!topic?.requiresDetail || topic?.code === 'OTRO';
   }
 
-  private legacyDifficulty(code: string): 'CONTRASENA_NO_FUNCIONA' | 'DATOS_CONTACTO_NO_ACTUALIZADOS' | 'SIN_CORREO_REGISTRADO' | 'OTRO' {
-    const allowed = ['CONTRASENA_NO_FUNCIONA', 'DATOS_CONTACTO_NO_ACTUALIZADOS', 'SIN_CORREO_REGISTRADO', 'OTRO'];
+  private legacyDifficulty(code: string): 'CONTRASENA_NO_FUNCIONA' | 'DATOS_CONTACTO_NO_ACTUALIZADOS' | 'SIN_CORREO_REGISTRADO' | 'NO_RECIBI_COMPARTIR_ESTUDIOS' | 'NO_RECIBI_RECUPERAR_CONTRASENA' | 'TUTOR_RESPONSABLE_SIN_ACCESO' | 'OTRO' {
+    const allowed = ['CONTRASENA_NO_FUNCIONA', 'DATOS_CONTACTO_NO_ACTUALIZADOS', 'SIN_CORREO_REGISTRADO', 'NO_RECIBI_COMPARTIR_ESTUDIOS', 'NO_RECIBI_RECUPERAR_CONTRASENA', 'TUTOR_RESPONSABLE_SIN_ACCESO', 'OTRO'];
     return allowed.includes(code) ? code as any : 'OTRO';
   }
 }
@@ -270,6 +332,17 @@ function fixedPhoneValidator(): ValidatorFn {
     if (!value) return null;
     const digits = value.replace(/\D/g, '');
     return digits.length >= 7 && digits.length <= 12 ? null : { fixedPhone: true };
+  };
+}
+
+function anyPhoneValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = String(control.value ?? '').trim();
+    if (!value) return null;
+    const digits = value.replace(/\D/g, '');
+    const mobileOk = (digits.length === 9 && digits.startsWith('9')) || (digits.length === 11 && digits.startsWith('569'));
+    const fixedOk = digits.length >= 7 && digits.length <= 12;
+    return mobileOk || fixedOk ? null : { phone: true };
   };
 }
 

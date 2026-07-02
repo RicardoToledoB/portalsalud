@@ -62,6 +62,21 @@ public class PortalImageRequest {
     @Column(name = "user_observation", length = 1000)
     private String userObservation;
 
+    @Column(name = "tutor_full_name", length = 150)
+    private String tutorFullName;
+
+    @Column(name = "tutor_rut", length = 20)
+    private String tutorRut;
+
+    @Column(name = "tutor_email", length = 150)
+    private String tutorEmail;
+
+    @Column(name = "tutor_phone", length = 50)
+    private String tutorPhone;
+
+    @Column(name = "tutor_relationship", length = 100)
+    private String tutorRelationship;
+
     @Column(name = "consent_accepted", nullable = false)
     private boolean consentAccepted;
 
@@ -111,12 +126,14 @@ public class PortalImageRequest {
         this.portalType = this.portalType == null ? PortalType.PORTAL_IMAGENES : this.portalType;
         this.source = this.source == null ? "QR_FORM" : this.source;
         this.email = normalizeEmail(this.email);
+        this.tutorEmail = normalizeEmail(this.tutorEmail);
     }
 
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
         this.email = normalizeEmail(this.email);
+        this.tutorEmail = normalizeEmail(this.tutorEmail);
     }
 
     private String normalizeEmail(String value) {

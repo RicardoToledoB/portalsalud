@@ -135,11 +135,11 @@ export class ApiService {
     return this.http.get<SupportPortal[]>(`${environment.apiBaseUrl}/admin/portales`);
   }
 
-  createPortal(payload: { code: string; name: string; description?: string; active: boolean; displayOrder?: number }): Observable<SupportPortal> {
+  createPortal(payload: { code: string; name: string; description?: string; active: boolean; allowUserObservation?: boolean; displayOrder?: number }): Observable<SupportPortal> {
     return this.http.post<SupportPortal>(`${environment.apiBaseUrl}/admin/portales`, payload);
   }
 
-  updatePortal(id: number, payload: { code: string; name: string; description?: string; active: boolean; displayOrder?: number }): Observable<SupportPortal> {
+  updatePortal(id: number, payload: { code: string; name: string; description?: string; active: boolean; allowUserObservation?: boolean; displayOrder?: number }): Observable<SupportPortal> {
     return this.http.put<SupportPortal>(`${environment.apiBaseUrl}/admin/portales/${id}`, payload);
   }
 
@@ -147,11 +147,11 @@ export class ApiService {
     return this.http.get<PortalTopic[]>(`${environment.apiBaseUrl}/admin/portales/${portalId}/tematicas`);
   }
 
-  createTopic(portalId: number, payload: { code: string; name: string; description?: string; active: boolean; requiresDetail?: boolean; displayOrder?: number }): Observable<PortalTopic> {
+  createTopic(portalId: number, payload: { code: string; name: string; description?: string; active: boolean; requiresDetail?: boolean; requiresTutorContact?: boolean; displayOrder?: number }): Observable<PortalTopic> {
     return this.http.post<PortalTopic>(`${environment.apiBaseUrl}/admin/portales/${portalId}/tematicas`, payload);
   }
 
-  updateTopic(portalId: number, topicId: number, payload: { code: string; name: string; description?: string; active: boolean; requiresDetail?: boolean; displayOrder?: number }): Observable<PortalTopic> {
+  updateTopic(portalId: number, topicId: number, payload: { code: string; name: string; description?: string; active: boolean; requiresDetail?: boolean; requiresTutorContact?: boolean; displayOrder?: number }): Observable<PortalTopic> {
     return this.http.put<PortalTopic>(`${environment.apiBaseUrl}/admin/portales/${portalId}/tematicas/${topicId}`, payload);
   }
 }
