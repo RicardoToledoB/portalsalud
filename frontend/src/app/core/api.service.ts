@@ -111,6 +111,10 @@ export class ApiService {
     return this.http.get<UserDto[]>(`${environment.apiBaseUrl}/users`);
   }
 
+  getAssignableReferents(): Observable<UserDto[]> {
+    return this.http.get<UserDto[]>(`${environment.apiBaseUrl}/users/responsables`);
+  }
+
   createUser(payload: { fullName: string; email: string; password: string; role: UserRole; portalType?: PortalType | null; portalId?: number | null; topicId?: number | null; portalAssignments?: Partial<UserPortalAssignment>[]; difficultyType?: DifficultyType | null }): Observable<UserDto> {
     return this.http.post<UserDto>(`${environment.apiBaseUrl}/users`, payload);
   }

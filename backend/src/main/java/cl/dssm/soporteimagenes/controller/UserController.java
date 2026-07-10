@@ -22,6 +22,11 @@ public class UserController {
         return userService.list();
     }
 
+    @GetMapping("/responsables")
+    public List<UserDto> listAssignableReferents() {
+        return userService.listAssignableReferents();
+    }
+
     @PostMapping
     public UserDto create(@Valid @RequestBody CreateUserDto dto) {
         return userService.create(dto);

@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/public/portal-imagenes/solicitudes").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/public/portal-imagenes/solicitudes/folio/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/public/portal-imagenes/solicitudes/seguimiento").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/responsables").hasAnyRole("ADMIN", "REFERENTE_DSSM")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

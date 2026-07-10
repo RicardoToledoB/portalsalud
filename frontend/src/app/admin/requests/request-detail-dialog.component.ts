@@ -79,11 +79,11 @@ import { PortalImageRequest, RequestAttachment, RequestLog, RequestStatus, UserD
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" *ngIf="isAdmin()">
+          <mat-form-field appearance="outline" *ngIf="canReassignResponsible()">
             <mat-label>Responsable</mat-label>
             <mat-select formControlName="assignedUserId">
               <mat-option [value]="null">Sin asignación</mat-option>
-              <mat-option *ngFor="let u of referents()" [value]="u.id">{{ u.fullName }} - {{ u.portalName || 'General' }}</mat-option>
+              <mat-option *ngFor="let u of referents()" [value]="u.id">{{ u.fullName }} - {{ u.portalName || 'Portal asignado' }}</mat-option>
             </mat-select>
           </mat-form-field>
         </div>
@@ -189,8 +189,8 @@ export class RequestDetailDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.api.getRequestLogs(this.data.id).subscribe(logs => this.logs.set(logs));
-    if (this.isAdmin()) {
-      this.api.getUsers().subscribe(users => this.users.set(users.filter(u => u.active && u.role === 'REFERENTE_DSSM')));
+    if (this.canReassignResponsible()) {
+      this.api.getAssignableReferents().subscribe(users => this.users.set(users.filter(u => u.active && u.role === 'REFERENTE_DSSM')));
     }
   }
 
@@ -198,11 +198,18 @@ export class RequestDetailDialogComponent implements OnInit {
     return this.auth.currentUser()?.role === 'ADMIN';
   }
 
+  canReassignResponsible(): boolean {
+    const user = this.auth.currentUser();
+    if (user?.role === 'ADMIN') return true;
+    if (user?.role !== 'REFERENTE_DSSM' || !this.data.portalId) return false;
+    return this.auth.assignedPortals().some(a => a.portalId === this.data.portalId);
+  }
+
   referents(): UserDto[] {
     return this.users().filter(u => {
-      if (!this.data.portalId) return true;
+      if (!this.data.portalId) return false;
       if (u.portalAssignments?.length) return u.portalAssignments.some(a => a.portalId === this.data.portalId);
-      return !u.portalId || u.portalId === this.data.portalId;
+      return u.portalId === this.data.portalId;
     });
   }
 

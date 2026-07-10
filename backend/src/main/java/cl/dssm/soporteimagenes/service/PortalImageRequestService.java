@@ -215,8 +215,10 @@ public class PortalImageRequestService {
     @Transactional
     public PortalImageRequestResponseDto updateStatus(Long id, UpdateRequestStatusDto dto) {
         validatePublicResponse(dto.publicResponse());
+        User currentUser = currentUserService.getCurrentUser().orElse(null);
         PortalImageRequest request = findEntity(id);
         RequestStatus previous = request.getStatus();
+        Long previousAssignedUserId = request.getAssignedUser() == null ? null : request.getAssignedUser().getId();
         request.setStatus(dto.status());
 
         if (dto.status() == RequestStatus.RESUELTO || dto.status() == RequestStatus.NO_CORRESPONDE) {
@@ -228,6 +230,7 @@ public class PortalImageRequestService {
         if (dto.assignedUserId() != null) {
             User assigned = userRepository.findById(dto.assignedUserId())
                     .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Funcionario asignado no encontrado"));
+            validateAssignableResponsible(currentUser, request, assigned);
             request.setAssignedUser(assigned);
         } else if (request.getAssignedUser() == null) {
             currentUserService.getCurrentUser().ifPresent(request::setAssignedUser);
@@ -244,12 +247,23 @@ public class PortalImageRequestService {
         PortalImageRequest saved = repository.save(request);
         logRepository.save(PortalImageRequestLog.builder()
                 .request(saved)
-                .user(currentUserService.getCurrentUser().orElse(null))
+                .user(currentUser)
                 .action(LogAction.CAMBIO_ESTADO)
                 .previousStatus(previous)
                 .newStatus(dto.status())
                 .observation(blankToNull(dto.observation()))
                 .build());
+
+        Long currentAssignedUserId = saved.getAssignedUser() == null ? null : saved.getAssignedUser().getId();
+        if (dto.assignedUserId() != null && !dto.assignedUserId().equals(previousAssignedUserId) && dto.assignedUserId().equals(currentAssignedUserId)) {
+            logRepository.save(PortalImageRequestLog.builder()
+                    .request(saved)
+                    .user(currentUser)
+                    .action(LogAction.ASIGNACION)
+                    .newStatus(saved.getStatus())
+                    .observation("Responsable actualizado a: " + saved.getAssignedUser().getFullName())
+                    .build());
+        }
 
         if (Boolean.TRUE.equals(dto.notifyRequester())) {
             saved = notifyRequester(saved);
@@ -429,6 +443,31 @@ public class PortalImageRequestService {
         return userRepository.findFirstByRoleAndActiveTrueAndPortalTypeAndDifficultyType(UserRole.REFERENTE_DSSM, portalType, difficultyType)
                 .or(() -> userRepository.findFirstByRoleAndActiveTrueAndPortalTypeAndDifficultyTypeIsNull(UserRole.REFERENTE_DSSM, portalType))
                 .orElse(null);
+    }
+
+    private void validateAssignableResponsible(User currentUser, PortalImageRequest request, User assigned) {
+        if (!assigned.isActive() || assigned.getRole() != UserRole.REFERENTE_DSSM) {
+            throw new ResponseStatusException(BAD_REQUEST, "El responsable debe ser un referente DSSM activo");
+        }
+        if (!isUserAssociatedToRequestPortal(assigned, request)) {
+            throw new ResponseStatusException(BAD_REQUEST, "El responsable seleccionado no pertenece al portal de la solicitud");
+        }
+        if (currentUser != null && currentUser.getRole() == UserRole.REFERENTE_DSSM && !isRequestWithinReferentScope(currentUser, request)) {
+            throw new ResponseStatusException(FORBIDDEN, "No tiene permisos para reasignar solicitudes fuera de sus portales asignados");
+        }
+    }
+
+    private boolean isUserAssociatedToRequestPortal(User user, PortalImageRequest request) {
+        if (request.getSupportPortal() != null) {
+            Long requestPortalId = request.getSupportPortal().getId();
+            List<UserPortalAssignment> assignments = effectiveAssignments(user);
+            if (!assignments.isEmpty()) {
+                return assignments.stream().anyMatch(assignment ->
+                        assignment.getSupportPortal() != null && assignment.getSupportPortal().getId().equals(requestPortalId));
+            }
+            return user.getSupportPortal() != null && user.getSupportPortal().getId().equals(requestPortalId);
+        }
+        return request.getPortalType() != null && user.getPortalType() == request.getPortalType();
     }
 
     private PortalImageRequest findEntity(Long id) {

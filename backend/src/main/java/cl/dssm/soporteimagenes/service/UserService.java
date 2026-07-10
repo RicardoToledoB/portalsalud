@@ -23,11 +23,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
@@ -38,10 +41,40 @@ public class UserService {
     private final PortalTopicRepository portalTopicRepository;
     private final UserPortalAssignmentRepository assignmentRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentUserService currentUserService;
 
     @Transactional(readOnly = true)
     public List<UserDto> list() {
         return userRepository.findAll().stream().map(this::toDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserDto> listAssignableReferents() {
+        User currentUser = currentUserService.getCurrentUser()
+                .orElseThrow(() -> new ResponseStatusException(FORBIDDEN, "Usuario no autenticado"));
+
+        List<User> activeReferents = userRepository.findAll().stream()
+                .filter(user -> user.isActive() && user.getRole() == UserRole.REFERENTE_DSSM)
+                .toList();
+
+        if (currentUser.getRole() == UserRole.ADMIN) {
+            return activeReferents.stream().map(this::toDto).toList();
+        }
+
+        if (currentUser.getRole() != UserRole.REFERENTE_DSSM) {
+            return List.of();
+        }
+
+        Set<Long> allowedPortalIds = assignedPortalIds(currentUser);
+        if (allowedPortalIds.isEmpty()) {
+            return List.of();
+        }
+
+        return activeReferents.stream()
+                .filter(user -> !assignedPortalIds(user).isEmpty())
+                .filter(user -> assignedPortalIds(user).stream().anyMatch(allowedPortalIds::contains))
+                .map(this::toDto)
+                .toList();
     }
 
     @Transactional
@@ -198,6 +231,20 @@ public class UserService {
             }
         }
         return PortalType.PORTAL_IMAGENES;
+    }
+
+    private Set<Long> assignedPortalIds(User user) {
+        Set<Long> portalIds = new HashSet<>();
+        if (user.getPortalAssignments() != null && !user.getPortalAssignments().isEmpty()) {
+            user.getPortalAssignments().stream()
+                    .filter(assignment -> assignment.getSupportPortal() != null)
+                    .map(assignment -> assignment.getSupportPortal().getId())
+                    .forEach(portalIds::add);
+        }
+        if (user.getSupportPortal() != null) {
+            portalIds.add(user.getSupportPortal().getId());
+        }
+        return portalIds;
     }
 
     private UserDto toDto(User user) {

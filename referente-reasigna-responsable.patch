@@ -1,0 +1,251 @@
+diff --git a/backend/src/main/java/cl/dssm/soporteimagenes/config/SecurityConfig.java b/backend/src/main/java/cl/dssm/soporteimagenes/config/SecurityConfig.java
+--- a/backend/src/main/java/cl/dssm/soporteimagenes/config/SecurityConfig.java	2026-06-16 22:39:52.000000000 +0000
++++ b/backend/src/main/java/cl/dssm/soporteimagenes/config/SecurityConfig.java	2026-07-10 14:25:42.100536116 +0000
+@@ -50,6 +50,7 @@
+                         .requestMatchers(HttpMethod.POST, "/api/public/portal-imagenes/solicitudes").permitAll()
+                         .requestMatchers(HttpMethod.GET, "/api/public/portal-imagenes/solicitudes/folio/**").permitAll()
+                         .requestMatchers(HttpMethod.GET, "/api/public/portal-imagenes/solicitudes/seguimiento").permitAll()
++                        .requestMatchers(HttpMethod.GET, "/api/users/responsables").hasAnyRole("ADMIN", "REFERENTE_DSSM")
+                         .requestMatchers("/api/users/**").hasRole("ADMIN")
+                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                         .anyRequest().authenticated()
+diff --git a/backend/src/main/java/cl/dssm/soporteimagenes/controller/UserController.java b/backend/src/main/java/cl/dssm/soporteimagenes/controller/UserController.java
+--- a/backend/src/main/java/cl/dssm/soporteimagenes/controller/UserController.java	2026-06-16 20:31:12.000000000 +0000
++++ b/backend/src/main/java/cl/dssm/soporteimagenes/controller/UserController.java	2026-07-10 14:25:42.100927372 +0000
+@@ -22,6 +22,11 @@
+         return userService.list();
+     }
+ 
++    @GetMapping("/responsables")
++    public List<UserDto> listAssignableReferents() {
++        return userService.listAssignableReferents();
++    }
++
+     @PostMapping
+     public UserDto create(@Valid @RequestBody CreateUserDto dto) {
+         return userService.create(dto);
+diff --git a/backend/src/main/java/cl/dssm/soporteimagenes/service/PortalImageRequestService.java b/backend/src/main/java/cl/dssm/soporteimagenes/service/PortalImageRequestService.java
+--- a/backend/src/main/java/cl/dssm/soporteimagenes/service/PortalImageRequestService.java	2026-06-19 18:05:00.000000000 +0000
++++ b/backend/src/main/java/cl/dssm/soporteimagenes/service/PortalImageRequestService.java	2026-07-10 14:25:42.102124305 +0000
+@@ -215,8 +215,10 @@
+     @Transactional
+     public PortalImageRequestResponseDto updateStatus(Long id, UpdateRequestStatusDto dto) {
+         validatePublicResponse(dto.publicResponse());
++        User currentUser = currentUserService.getCurrentUser().orElse(null);
+         PortalImageRequest request = findEntity(id);
+         RequestStatus previous = request.getStatus();
++        Long previousAssignedUserId = request.getAssignedUser() == null ? null : request.getAssignedUser().getId();
+         request.setStatus(dto.status());
+ 
+         if (dto.status() == RequestStatus.RESUELTO || dto.status() == RequestStatus.NO_CORRESPONDE) {
+@@ -228,6 +230,7 @@
+         if (dto.assignedUserId() != null) {
+             User assigned = userRepository.findById(dto.assignedUserId())
+                     .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Funcionario asignado no encontrado"));
++            validateAssignableResponsible(currentUser, request, assigned);
+             request.setAssignedUser(assigned);
+         } else if (request.getAssignedUser() == null) {
+             currentUserService.getCurrentUser().ifPresent(request::setAssignedUser);
+@@ -244,13 +247,24 @@
+         PortalImageRequest saved = repository.save(request);
+         logRepository.save(PortalImageRequestLog.builder()
+                 .request(saved)
+-                .user(currentUserService.getCurrentUser().orElse(null))
++                .user(currentUser)
+                 .action(LogAction.CAMBIO_ESTADO)
+                 .previousStatus(previous)
+                 .newStatus(dto.status())
+                 .observation(blankToNull(dto.observation()))
+                 .build());
+ 
++        Long currentAssignedUserId = saved.getAssignedUser() == null ? null : saved.getAssignedUser().getId();
++        if (dto.assignedUserId() != null && !dto.assignedUserId().equals(previousAssignedUserId) && dto.assignedUserId().equals(currentAssignedUserId)) {
++            logRepository.save(PortalImageRequestLog.builder()
++                    .request(saved)
++                    .user(currentUser)
++                    .action(LogAction.ASIGNACION)
++                    .newStatus(saved.getStatus())
++                    .observation("Responsable actualizado a: " + saved.getAssignedUser().getFullName())
++                    .build());
++        }
++
+         if (Boolean.TRUE.equals(dto.notifyRequester())) {
+             saved = notifyRequester(saved);
+         }
+@@ -431,6 +445,31 @@
+                 .orElse(null);
+     }
+ 
++    private void validateAssignableResponsible(User currentUser, PortalImageRequest request, User assigned) {
++        if (!assigned.isActive() || assigned.getRole() != UserRole.REFERENTE_DSSM) {
++            throw new ResponseStatusException(BAD_REQUEST, "El responsable debe ser un referente DSSM activo");
++        }
++        if (!isUserAssociatedToRequestPortal(assigned, request)) {
++            throw new ResponseStatusException(BAD_REQUEST, "El responsable seleccionado no pertenece al portal de la solicitud");
++        }
++        if (currentUser != null && currentUser.getRole() == UserRole.REFERENTE_DSSM && !isRequestWithinReferentScope(currentUser, request)) {
++            throw new ResponseStatusException(FORBIDDEN, "No tiene permisos para reasignar solicitudes fuera de sus portales asignados");
++        }
++    }
++
++    private boolean isUserAssociatedToRequestPortal(User user, PortalImageRequest request) {
++        if (request.getSupportPortal() != null) {
++            Long requestPortalId = request.getSupportPortal().getId();
++            List<UserPortalAssignment> assignments = effectiveAssignments(user);
++            if (!assignments.isEmpty()) {
++                return assignments.stream().anyMatch(assignment ->
++                        assignment.getSupportPortal() != null && assignment.getSupportPortal().getId().equals(requestPortalId));
++            }
++            return user.getSupportPortal() != null && user.getSupportPortal().getId().equals(requestPortalId);
++        }
++        return request.getPortalType() != null && user.getPortalType() == request.getPortalType();
++    }
++
+     private PortalImageRequest findEntity(Long id) {
+         PortalImageRequest request = repository.findById(id)
+                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Solicitud no encontrada"));
+diff --git a/backend/src/main/java/cl/dssm/soporteimagenes/service/UserService.java b/backend/src/main/java/cl/dssm/soporteimagenes/service/UserService.java
+--- a/backend/src/main/java/cl/dssm/soporteimagenes/service/UserService.java	2026-06-17 01:04:39.000000000 +0000
++++ b/backend/src/main/java/cl/dssm/soporteimagenes/service/UserService.java	2026-07-10 14:25:42.101347271 +0000
+@@ -23,11 +23,14 @@
+ import org.springframework.web.server.ResponseStatusException;
+ 
+ import java.util.ArrayList;
++import java.util.HashSet;
+ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
++import java.util.Set;
+ 
+ import static org.springframework.http.HttpStatus.BAD_REQUEST;
++import static org.springframework.http.HttpStatus.FORBIDDEN;
+ import static org.springframework.http.HttpStatus.NOT_FOUND;
+ 
+ @Service
+@@ -38,12 +41,42 @@
+     private final PortalTopicRepository portalTopicRepository;
+     private final UserPortalAssignmentRepository assignmentRepository;
+     private final PasswordEncoder passwordEncoder;
++    private final CurrentUserService currentUserService;
+ 
+     @Transactional(readOnly = true)
+     public List<UserDto> list() {
+         return userRepository.findAll().stream().map(this::toDto).toList();
+     }
+ 
++    @Transactional(readOnly = true)
++    public List<UserDto> listAssignableReferents() {
++        User currentUser = currentUserService.getCurrentUser()
++                .orElseThrow(() -> new ResponseStatusException(FORBIDDEN, "Usuario no autenticado"));
++
++        List<User> activeReferents = userRepository.findAll().stream()
++                .filter(user -> user.isActive() && user.getRole() == UserRole.REFERENTE_DSSM)
++                .toList();
++
++        if (currentUser.getRole() == UserRole.ADMIN) {
++            return activeReferents.stream().map(this::toDto).toList();
++        }
++
++        if (currentUser.getRole() != UserRole.REFERENTE_DSSM) {
++            return List.of();
++        }
++
++        Set<Long> allowedPortalIds = assignedPortalIds(currentUser);
++        if (allowedPortalIds.isEmpty()) {
++            return List.of();
++        }
++
++        return activeReferents.stream()
++                .filter(user -> !assignedPortalIds(user).isEmpty())
++                .filter(user -> assignedPortalIds(user).stream().anyMatch(allowedPortalIds::contains))
++                .map(this::toDto)
++                .toList();
++    }
++
+     @Transactional
+     public UserDto create(CreateUserDto dto) {
+         String email = dto.email().trim().toLowerCase();
+@@ -200,6 +233,20 @@
+         return PortalType.PORTAL_IMAGENES;
+     }
+ 
++    private Set<Long> assignedPortalIds(User user) {
++        Set<Long> portalIds = new HashSet<>();
++        if (user.getPortalAssignments() != null && !user.getPortalAssignments().isEmpty()) {
++            user.getPortalAssignments().stream()
++                    .filter(assignment -> assignment.getSupportPortal() != null)
++                    .map(assignment -> assignment.getSupportPortal().getId())
++                    .forEach(portalIds::add);
++        }
++        if (user.getSupportPortal() != null) {
++            portalIds.add(user.getSupportPortal().getId());
++        }
++        return portalIds;
++    }
++
+     private UserDto toDto(User user) {
+         List<UserPortalAssignmentDto> assignments = assignmentDtos(user);
+         return new UserDto(
+diff --git a/frontend/src/app/admin/requests/request-detail-dialog.component.ts b/frontend/src/app/admin/requests/request-detail-dialog.component.ts
+--- a/frontend/src/app/admin/requests/request-detail-dialog.component.ts	2026-06-19 18:07:55.000000000 +0000
++++ b/frontend/src/app/admin/requests/request-detail-dialog.component.ts	2026-07-10 14:25:42.102627896 +0000
+@@ -79,11 +79,11 @@
+             </mat-select>
+           </mat-form-field>
+ 
+-          <mat-form-field appearance="outline" *ngIf="isAdmin()">
++          <mat-form-field appearance="outline" *ngIf="canReassignResponsible()">
+             <mat-label>Responsable</mat-label>
+             <mat-select formControlName="assignedUserId">
+               <mat-option [value]="null">Sin asignación</mat-option>
+-              <mat-option *ngFor="let u of referents()" [value]="u.id">{{ u.fullName }} - {{ u.portalName || 'General' }}</mat-option>
++              <mat-option *ngFor="let u of referents()" [value]="u.id">{{ u.fullName }} - {{ u.portalName || 'Portal asignado' }}</mat-option>
+             </mat-select>
+           </mat-form-field>
+         </div>
+@@ -189,8 +189,8 @@
+ 
+   ngOnInit(): void {
+     this.api.getRequestLogs(this.data.id).subscribe(logs => this.logs.set(logs));
+-    if (this.isAdmin()) {
+-      this.api.getUsers().subscribe(users => this.users.set(users.filter(u => u.active && u.role === 'REFERENTE_DSSM')));
++    if (this.canReassignResponsible()) {
++      this.api.getAssignableReferents().subscribe(users => this.users.set(users.filter(u => u.active && u.role === 'REFERENTE_DSSM')));
+     }
+   }
+ 
+@@ -198,11 +198,18 @@
+     return this.auth.currentUser()?.role === 'ADMIN';
+   }
+ 
++  canReassignResponsible(): boolean {
++    const user = this.auth.currentUser();
++    if (user?.role === 'ADMIN') return true;
++    if (user?.role !== 'REFERENTE_DSSM' || !this.data.portalId) return false;
++    return this.auth.assignedPortals().some(a => a.portalId === this.data.portalId);
++  }
++
+   referents(): UserDto[] {
+     return this.users().filter(u => {
+-      if (!this.data.portalId) return true;
++      if (!this.data.portalId) return false;
+       if (u.portalAssignments?.length) return u.portalAssignments.some(a => a.portalId === this.data.portalId);
+-      return !u.portalId || u.portalId === this.data.portalId;
++      return u.portalId === this.data.portalId;
+     });
+   }
+ 
+diff --git a/frontend/src/app/core/api.service.ts b/frontend/src/app/core/api.service.ts
+--- a/frontend/src/app/core/api.service.ts	2026-06-19 18:05:58.000000000 +0000
++++ b/frontend/src/app/core/api.service.ts	2026-07-10 14:25:42.102407794 +0000
+@@ -111,6 +111,10 @@
+     return this.http.get<UserDto[]>(`${environment.apiBaseUrl}/users`);
+   }
+ 
++  getAssignableReferents(): Observable<UserDto[]> {
++    return this.http.get<UserDto[]>(`${environment.apiBaseUrl}/users/responsables`);
++  }
++
+   createUser(payload: { fullName: string; email: string; password: string; role: UserRole; portalType?: PortalType | null; portalId?: number | null; topicId?: number | null; portalAssignments?: Partial<UserPortalAssignment>[]; difficultyType?: DifficultyType | null }): Observable<UserDto> {
+     return this.http.post<UserDto>(`${environment.apiBaseUrl}/users`, payload);
+   }
